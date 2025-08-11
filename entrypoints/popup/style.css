@@ -24,14 +24,14 @@
 
 button {
   padding: 0 24px;
-  letter-spacing: .05em;
+  letter-spacing: 0.05em;
 
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 
   cursor: pointer;
-  transition: .1s ease-out;
+  transition: 0.1s ease-out;
   outline: none;
   background: none;
   &:hover:not(:disabled),
@@ -60,7 +60,8 @@ button {
   letter-spacing: 0.02em;
   -webkit-text-size-adjust: 100%;
   :lang(ja) {
-    font-family: "Noto Sans JP", "Noto Sans CJK JP", Robot, -apple-system,
+    font-family:
+      "Noto Sans JP", "Noto Sans CJK JP", Robot, -apple-system,
       BlinkMacSystemFont, sans-serif;
   }
 }

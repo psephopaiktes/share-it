@@ -7,9 +7,9 @@ const label = {
   es: "Compartir con extensiones del OS",
 };
 
-import $store from "@/entrypoints/popup/store";
 // Action
 import { onMounted, ref } from "vue";
+import $store from "@/entrypoints/popup/store";
 
 const isSupported = ref(false);
 

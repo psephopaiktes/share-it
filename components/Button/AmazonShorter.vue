@@ -7,9 +7,9 @@ const label = {
   es: "Abrir URL de Amazon acortada",
 };
 
-import $store from "@/entrypoints/popup/store";
 // Action
 import { onMounted, ref } from "vue";
+import $store from "@/entrypoints/popup/store";
 
 const url = ref("");
 const domain = ref("");

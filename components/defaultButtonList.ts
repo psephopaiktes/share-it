@@ -9,7 +9,6 @@ export const defaultButtonList: ButtonConfig[] = [
   { componentName: "Threads", enable: false },
   { componentName: "Mastodon", enable: false },
   { componentName: "Facebook", enable: false },
-  { componentName: "Pocket", enable: true },
   { componentName: "Instapaper", enable: false },
   { componentName: "Pinterest", enable: false },
   { componentName: "Blogger", enable: false },
@@ -19,7 +18,6 @@ export const defaultButtonList: ButtonConfig[] = [
   { componentName: "Outlook", enable: false },
   { componentName: "AmazonShorter", enable: true },
   { componentName: "Messenger", enable: false },
-  // { componentName: "Skype", enable: false },
 
   // System
   { componentName: "CopyLinkAsRichText", enable: true },

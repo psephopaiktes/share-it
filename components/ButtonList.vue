@@ -1,7 +1,7 @@
 <script lang="ts" setup>
+import { type Component, computed, onMounted, ref } from "vue";
 import $store from "@/entrypoints/popup/store";
 import i18n from "@/lib/i18n";
-import { type Component, computed, onMounted, ref } from "vue";
 import { type ButtonConfig, defaultButtonList } from "./defaultButtonList";
 
 const moveTopHint = i18n.t({

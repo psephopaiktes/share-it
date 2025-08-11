@@ -12,7 +12,17 @@ import $store from "@/entrypoints/popup/store";
 import notify from "@/lib/notifiy";
 
 const run = async () => {
-  const str = `<a href="${$store.tab?.url}">${$store.tab?.title}</a>`;
+  const escapeHtml = (unsafe: string) =>
+    unsafe
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+
+  const url = escapeHtml($store.tab?.url ?? "");
+  const title = escapeHtml($store.tab?.title ?? "");
+  const str = `<a href="${url}">${title}</a>`;
 
   try {
     const clipboardItem = new ClipboardItem({
@@ -41,5 +51,5 @@ const tooltip = {
 </script>
 
 <template>
-	<VButton :label @click="run()" :img :tooltip />
+  <VButton :label @click="run()" :img :tooltip />
 </template>
