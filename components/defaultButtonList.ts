@@ -70,4 +70,5 @@ export const defaultButtonList: ButtonConfig[] = [
   { componentName: "Weibo", enable: false },
   { componentName: "WhatsApp", enable: false },
   { componentName: "Viber", enable: false },
+  { componentName: "ArchiveToday", enable: false },
 ];
