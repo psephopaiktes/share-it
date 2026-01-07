@@ -12,6 +12,7 @@ export const defaultButtonList: ButtonConfig[] = [
   { componentName: "Instapaper", enable: false },
   { componentName: "Pinterest", enable: false },
   { componentName: "Blogger", enable: false },
+  { componentName: "Craft", enable: true },
   { componentName: "Gmail", enable: true },
   { componentName: "GoogleCalendar", enable: true },
   { componentName: "GoogleTranslate", enable: true },
