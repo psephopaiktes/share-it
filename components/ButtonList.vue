@@ -177,9 +177,14 @@ const save = async () => {
     </template>
   </ul>
 
-  <a href="https://github.com/psephopaiktes/share-it/issues/new/choose" id="request" target="_blank" rel="noopener noreferrer">
+  <a href="https://github.com/psephopaiktes/share-it/issues/new/choose" id="request" class="popupLink" target="_blank" rel="noopener noreferrer">
     {{ i18n.t({ en: "Request new button", ja: "ボタンのリクエスト", "zh-cn": "请求新按钮", es: "Solicitar nuevo botón" }) }}
     <img src="/img/send.svg" alt="icon" />
+  </a>
+
+  <a href="https://github.com/sponsors/psephopaiktes?frequency=one-time" id="sponsor" class="popupLink" target="_blank" rel="noopener noreferrer">
+    {{ i18n.t({ en: "Support the developer", ja: "開発者を支援する", "zh-cn": "支持开发者", es: "Apoyar al desarrollador" }) }}
+    <img src="/img/sponsor.svg" alt="" />
   </a>
 
   <footer>
@@ -285,10 +290,10 @@ const save = async () => {
   }
 }
 
-#request {
+.popupLink {
   display: flex;
   gap: .8em;
-  margin: 32px 16px 0;
+  margin: 8px 16px 0;
   justify-content: center;
   line-height: 32px;
   background: rgb(var(--color-theme) / .9);
@@ -306,6 +311,10 @@ const save = async () => {
     width: 1.2em;
     aspect-ratio: 1;
   }
+}
+
+#request {
+  margin-top: 32px;
 }
 
 footer {
