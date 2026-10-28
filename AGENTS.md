@@ -15,6 +15,10 @@
 
 ## UI and assets
 
+- Before changing web UI, CSS, or client-side JavaScript, use the installed
+  [Modern Web Guidance skill](.agents/skills/modern-web-guidance/SKILL.md) to find
+  relevant guidance. Check compatibility with this extension's Chrome and Firefox
+  targets before adopting a web platform feature.
 - The popup lives in `entrypoints/popup/`; `components/ButtonList.vue` renders the
   sharing list, settings, and links at the bottom. Individual sharing actions live
   in `components/Button/`, with defaults in `components/defaultButtonList.ts`.
