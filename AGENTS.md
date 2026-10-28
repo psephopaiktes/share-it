@@ -1,8 +1,11 @@
 # Working in this repository
 
 - This is a Vue 3 / TypeScript browser extension built with WXT. Use the existing
-  checkout and create a focused branch from the latest `main`; do not create an
-  additional Git worktree unless requested.
+  checkout; do not create an additional Git worktree unless requested.
+- `release/v4` is the integration branch for the v4 major update. Create v4 feature
+  branches from the latest `release/v4` and target their pull requests at
+  `release/v4`. Keep each feature branch focused on one issue. Merge the
+  integration branch into `main` when the v4 release is requested.
 - Keep changes small. Reuse existing components and conventions. Keep logic used
   by one component in that component; extract shared code when multiple callers
   need it. Avoid adding dependencies or tool-specific configuration unless needed
