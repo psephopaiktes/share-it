@@ -16,7 +16,7 @@ A browser extension that allows you to share and copy web pages in various ways.
 
 ## Development
 
-Use Node.js 22.12 or newer (Node.js 24 is recommended; see `.nvmrc`).
+Use Node.js 22.12 or newer.
 ```zsh
 npm ci
 npm start

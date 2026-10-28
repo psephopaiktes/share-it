@@ -14,7 +14,7 @@ Please fork the repository and submit a Pull Request following the general proce
 
 ### Setting Up the Development Environment
 
-Use Node.js 22.12 or newer (Node.js 24 is recommended; see `.nvmrc`).
+Use Node.js 22.12 or newer.
 
 ```zsh
 npm ci
