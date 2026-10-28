@@ -1,6 +1,10 @@
+import type { ButtonSettings } from "../lib/settings";
+
 export interface ButtonConfig {
   componentName: string;
   enable: boolean;
+  // Only buttons with actual configurable fields get a settings shortcut.
+  settings?: ButtonSettings;
 }
 
 export const defaultButtonList: ButtonConfig[] = [
