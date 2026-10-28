@@ -9,12 +9,14 @@ const label = {
 
 // Action
 import $store from "@/entrypoints/popup/store";
-import notify from "@/lib/notifiy";
+import { copyToClipboard } from "@/lib/clipboard";
 
-const run = () => {
-  navigator.clipboard.writeText(`${$store.tab?.title} ${$store.tab?.url}`);
-  notify();
-};
+const run = () =>
+  copyToClipboard(() =>
+    navigator.clipboard.writeText(
+      `${$store.tab?.title ?? ""} ${$store.tab?.url ?? ""}`,
+    ),
+  );
 
 // Image
 const img = "/img/copy.svg";

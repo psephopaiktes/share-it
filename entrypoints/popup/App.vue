@@ -1,26 +1,40 @@
 <script lang="ts" setup>
-import { onBeforeMount, ref } from "vue";
+import { computed, onMounted, onUnmounted } from "vue";
 import ButtonList from "@/components/ButtonList.vue";
 import $store from "./store";
 
-const title = ref("Example site");
-const url = ref("https://example.com");
-const favIconUrl = ref("https://hira.page/img/meta/favicon.svg");
+const title = computed(() => $store.tab?.title ?? "");
+const url = computed(() => $store.tab?.url ?? "");
+const favIconUrl = computed(() => $store.tab?.favIconUrl ?? "");
 
 const getCurrentTab = async () => {
-  const queryOptions = { active: true, currentWindow: true };
-  const [tab] = await browser.tabs.query(queryOptions);
-  return tab;
+  try {
+    const [tab] = await browser.tabs.query({
+      active: true,
+      currentWindow: true,
+    });
+    $store.tab = tab ?? null;
+  } catch (error) {
+    console.error("Could not read the active tab:", error);
+  }
 };
 
 const handleKeyNavigation = (event: KeyboardEvent) => {
   if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+  if (
+    event.target instanceof HTMLElement &&
+    (event.target.matches("input, textarea, select") ||
+      event.target.isContentEditable)
+  )
+    return;
 
   const focusableButtons = Array.from(
-    document.querySelectorAll("button, a"),
+    document.querySelectorAll(
+      "button:not(:disabled), a[href], input:not(:disabled)",
+    ),
   ).filter((el): el is HTMLElement => {
     const style = getComputedStyle(el);
-    return style.display !== "none" && style.visibility !== "hidden";
+    return el.getClientRects().length > 0 && style.visibility !== "hidden";
   });
   if (focusableButtons.length === 0) return;
 
@@ -28,7 +42,7 @@ const handleKeyNavigation = (event: KeyboardEvent) => {
   if (!activeElement || !focusableButtons.includes(activeElement)) {
     if (event.key === "ArrowDown") {
       event.preventDefault();
-      focusableButtons[0].focus();
+      focusableButtons[0]?.focus();
     }
     return;
   }
@@ -43,20 +57,15 @@ const handleKeyNavigation = (event: KeyboardEvent) => {
       ? (currentIndex + 1) % focusableButtons.length
       : (currentIndex - 1 + focusableButtons.length) % focusableButtons.length;
 
-  focusableButtons[nextIndex].focus();
+  focusableButtons[nextIndex]?.focus();
 };
 
-onBeforeMount(() => {
-  getCurrentTab().then((tab) => {
-    $store.tab = tab;
-
-    title.value = tab.title || "";
-    url.value = tab.url || "";
-    favIconUrl.value = tab.favIconUrl || "";
-  });
-
+onMounted(() => {
+  void getCurrentTab();
   document.addEventListener("keydown", handleKeyNavigation);
 });
+
+onUnmounted(() => document.removeEventListener("keydown", handleKeyNavigation));
 </script>
 
 <template>

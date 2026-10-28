@@ -8,7 +8,8 @@ Please submit your report using the GitHub security advisories page: [Create a s
 
 ## Security Considerations
 
-- This extension does **not collect user data**, store cookies, or send information to servers.
+- This extension has no analytics or application backend. When you choose a sharing action, the page URL, title, or other shared content is sent to the selected service. The QR-code action also sends the page URL to an external QR-code service.
+- Button preferences are stored using the browser's `storage.sync` API and may sync through the browser vendor when browser sync is enabled.
 - Permissions requested are necessary for the extension’s functionality, including interacting with tabs, notifications, and clipboard.
 
 ## Responsible Disclosure

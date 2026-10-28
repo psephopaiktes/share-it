@@ -9,34 +9,23 @@ const label = {
 
 // Action
 import $store from "@/entrypoints/popup/store";
-import notify from "@/lib/notifiy";
+import { copyToClipboard } from "@/lib/clipboard";
+import { createHtmlLink } from "@/lib/link";
 
-const run = async () => {
-  const escapeHtml = (unsafe: string) =>
-    unsafe
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-
-  const url = escapeHtml($store.tab?.url ?? "");
-  const title = escapeHtml($store.tab?.title ?? "");
-  const str = `<a href="${url}">${title}</a>`;
-
-  try {
+const run = () =>
+  copyToClipboard(async () => {
+    const title = $store.tab?.title ?? "";
+    const url = $store.tab?.url ?? "";
+    const html = createHtmlLink(title, url);
     const clipboardItem = new ClipboardItem({
-      "text/html": new Blob([str], { type: "text/html" }),
-      "text/plain": new Blob([str], { type: "text/plain" }),
+      "text/html": new Blob([html], { type: "text/html" }),
+      "text/plain": new Blob([[title, url].filter(Boolean).join(" ")], {
+        type: "text/plain",
+      }),
     });
 
     await navigator.clipboard.write([clipboardItem]);
-
-    notify();
-  } catch (e) {
-    console.error("Copy Failed:", e);
-  }
-};
+  });
 
 // Image
 const img = "/img/richtext.svg";

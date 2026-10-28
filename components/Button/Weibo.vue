@@ -16,7 +16,7 @@ const run = () => {
     url: $store.tab?.url || "",
   }).toString();
 
-  window.open(`http://service.weibo.com/share/share.php?${params}`);
+  window.open(`https://service.weibo.com/share/share.php?${params}`);
 };
 
 // Image

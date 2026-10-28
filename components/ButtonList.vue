@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { type Component, computed, onMounted, ref } from "vue";
 import $store from "@/entrypoints/popup/store";
+import { normalizeButtons } from "@/lib/button-options";
 import i18n from "@/lib/i18n";
 import { type ButtonConfig, defaultButtonList } from "./defaultButtonList";
 
@@ -24,6 +25,16 @@ const switchHint = i18n.t({
 });
 
 const buttons = ref<ButtonConfig[]>([]);
+const settingsLoaded = ref(false);
+const saving = ref(false);
+const settingsError = ref("");
+
+const settingsErrorMessage = i18n.t({
+  en: "Could not load or save settings. Please try again.",
+  ja: "設定を読み込み、または保存できませんでした。もう一度お試しください。",
+  "zh-cn": "无法加载或保存设置，请重试。",
+  es: "No se pudo cargar o guardar la configuración. Inténtalo de nuevo.",
+});
 const draggingIndex = ref<number>(0);
 
 // import all .vue files in the component/Button
@@ -51,31 +62,25 @@ const filteredButtons = computed(() =>
     : buttons.value.filter((button) => button.enable),
 );
 
-onMounted(async () => {
+const loadSettings = async () => {
   try {
     const data = await browser.storage.sync.get("options");
-    const userButtons: ButtonConfig[] = data.options?.buttons || [];
-
-    // Add newly added buttons to the end
-    const newButtons = defaultButtonList.filter(
-      (defaultButton) =>
-        !userButtons.some(
-          (browserButton) =>
-            browserButton.componentName === defaultButton.componentName,
-        ),
-    );
-
-    // Exclude removed buttons
-    buttons.value = [...userButtons, ...newButtons].filter((button) =>
-      defaultButtonList.some(
-        (defaultButton) => defaultButton.componentName === button.componentName,
-      ),
-    );
+    const options = data.options;
+    const savedButtons =
+      options && typeof options === "object" && "buttons" in options
+        ? options.buttons
+        : undefined;
+    buttons.value = normalizeButtons(savedButtons, defaultButtonList);
+    settingsLoaded.value = true;
+    settingsError.value = "";
   } catch (e) {
     console.error("Failed to retrieve options from storage:", e);
-    buttons.value = [...defaultButtonList];
+    buttons.value = normalizeButtons(undefined, defaultButtonList);
+    settingsError.value = settingsErrorMessage;
   }
-});
+};
+
+onMounted(loadSettings);
 
 const dragstart = (index: number) => {
   draggingIndex.value = index;
@@ -92,7 +97,9 @@ const ondrop = (index: number, e: DragEvent) => {
   (e.target as HTMLElement).style.borderTop = "";
   if (index === draggingIndex.value) return;
 
-  const moveValue = { ...buttons.value[draggingIndex.value] };
+  const draggedButton = buttons.value[draggingIndex.value];
+  if (!draggedButton) return;
+  const moveValue = { ...draggedButton };
   buttons.value.splice(draggingIndex.value, 1);
 
   if (draggingIndex.value < index) {
@@ -103,28 +110,53 @@ const ondrop = (index: number, e: DragEvent) => {
 };
 
 const movetop = (index: number) => {
-  const moveValue = { ...buttons.value[index] };
+  const button = buttons.value[index];
+  if (!button) return;
+  const moveValue = { ...button };
   buttons.value.splice(index, 1);
   buttons.value.unshift(moveValue);
 };
 
 const changeSwitch = (index: number, e: Event) => {
   const target = e.target as HTMLInputElement;
-  buttons.value[index].enable = target.checked;
+  const button = buttons.value[index];
+  if (button) button.enable = target.checked;
 };
 
-const save = () => {
-  $store.editing = !$store.editing;
-  browser.storage.sync.set({
-    options: {
-      buttons: [...buttons.value],
-    },
-  });
+const save = async () => {
+  if (saving.value || !settingsLoaded.value) return;
+  saving.value = true;
+  try {
+    const data = await browser.storage.sync.get("options");
+    const existing =
+      data.options &&
+      typeof data.options === "object" &&
+      !Array.isArray(data.options)
+        ? data.options
+        : {};
+    await browser.storage.sync.set({
+      options: {
+        ...existing,
+        buttons: normalizeButtons(buttons.value, defaultButtonList),
+      },
+    });
+    settingsError.value = "";
+    $store.editing = false;
+  } catch (error) {
+    console.error("Could not save settings:", error);
+    settingsError.value = settingsErrorMessage;
+  } finally {
+    saving.value = false;
+  }
 };
 </script>
 
 <template>
-  <ul class="buttonList">
+  <p v-if="settingsError" role="alert">{{ settingsError }}</p>
+  <button v-if="!settingsLoaded && settingsError" @click="loadSettings">
+    {{ i18n.t({ en: "Retry", ja: "再試行", "zh-cn": "重试", es: "Reintentar" }) }}
+  </button>
+  <ul class="buttonList" :inert="saving">
     <template v-for="(button, index) in filteredButtons" :key="button.componentName">
       <li :draggable="$store.editing" @dragstart="dragstart(index)" @dragover="dragover" @dragleave="dragleave"
         @drop="ondrop(index, $event)" :class="{ disable: !button.enable }"
@@ -145,18 +177,18 @@ const save = () => {
     </template>
   </ul>
 
-  <a href="https://github.com/psephopaiktes/share-it/blob/main/CONTRIBUTING.md" id="request" target="_blank">
+  <a href="https://github.com/psephopaiktes/share-it/issues/new/choose" id="request" target="_blank" rel="noopener noreferrer">
     {{ i18n.t({ en: "Request new button", ja: "ボタンのリクエスト", "zh-cn": "请求新按钮", es: "Solicitar nuevo botón" }) }}
     <img src="/img/send.svg" alt="icon" />
   </a>
 
   <footer>
-    <button v-if="!$store.editing" @click="$store.editing = !$store.editing">
+    <button v-if="!$store.editing" :disabled="!settingsLoaded" @click="$store.editing = true">
       <img src="/img/setting.svg" alt="icon" />
       {{ i18n.t({ en: "Manage Buttons", ja: "ボタン設定", "zh-cn": "管理按钮", es: "Administrar botones" }) }}
     </button>
 
-    <button v-else @click="save()" class="complete">
+    <button v-else @click="save()" :disabled="saving" class="complete">
       <img src="/img/complete.svg" alt="icon" />
       {{ i18n.t({ en: "Complete", ja: "完了", "zh-cn": "完成", es: "Completar" }) }}
     </button>

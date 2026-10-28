@@ -11,7 +11,8 @@ const label = {
 import $store from "@/entrypoints/popup/store";
 
 const run = () => {
-  window.open(`https://pagespeed.web.dev/analysis?url=${$store.tab?.url}`);
+  const params = new URLSearchParams({ url: $store.tab?.url ?? "" });
+  window.open(`https://pagespeed.web.dev/analysis?${params}`);
 };
 
 // Image

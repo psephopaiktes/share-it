@@ -1,3 +1,5 @@
+import { resolveLocale } from "./locale";
+
 const default_locale: string =
   browser.runtime.getManifest().default_locale || "en";
 
@@ -30,14 +32,17 @@ export default {
   locales,
 
   t(translations: Record<string, string>): string {
-    if (!(default_locale in translations)) {
+    if (!Object.hasOwn(translations, default_locale)) {
       throw new Error(
         `The default locale '${default_locale}' is required in the translations`,
       );
     }
 
-    const userLang =
-      browser.i18n.getUILanguage().toLowerCase() || default_locale;
-    return translations[userLang] || translations[default_locale];
+    const userLang = resolveLocale(
+      browser.i18n.getUILanguage(),
+      translations,
+      default_locale,
+    );
+    return translations[userLang] ?? translations[default_locale] ?? "";
   },
 };
