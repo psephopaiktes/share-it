@@ -22,16 +22,10 @@ npm ci
 npm start
 ```
 
-Load `.output/chrome-mv3-dev` as an unpacked extension after starting the dev
-server. Firefox development uses `npm run dev:firefox` and
-`.output/firefox-mv2-dev`. Development requires a browser that permits unpacked
-extensions.
-
-The optional `web-ext` browser launcher is intentionally not installed: its
-current dependency tree includes an unpatched `deepmerge` advisory
-([GHSA-gcqx-w48m-w2h4](https://github.com/advisories/GHSA-gcqx-w48m-w2h4)).
-WXT falls back to manual extension loading without it. This changes development
-browser startup, not the packaged extension.
+`npm start` starts the development server and opens a Chromium-based browser
+with the development extension through `web-ext`, which is included in the
+development dependencies. Firefox development uses `npm run dev:firefox`.
+Development requires a browser that permits unpacked extensions.
 
 ```sh
 npm run biome          # Read-only formatting/lint checks
@@ -44,8 +38,20 @@ npm audit              # Check installed dependencies for known advisories
 ```
 
 Build and zip commands do not rewrite source files. Safari packaging requires
-macOS and Xcode command-line tools. Browser auto-launch is optional; WXT supports
-an ignored `web-ext.config.ts` with `defineWebExtConfig({ disabled: true })`.
+macOS and Xcode command-line tools.
+
+WXT supports machine-specific browser settings in an ignored `web-ext.config.ts`.
+`defineWebExtConfig({ disabled: true })` disables automatic browser startup; remove
+that setting to use automatic startup. Use `binaries.chrome` to select Chromium
+if the browser executable cannot be detected automatically. When automatic startup
+is disabled for a headless environment, load `.output/chrome-mv3-dev` manually
+(or `.output/firefox-mv2-dev` for Firefox).
+
+The development browser launcher currently brings in an unpatched low-severity
+`deepmerge` advisory through `addons-linter`
+([GHSA-gcqx-w48m-w2h4](https://github.com/advisories/GHSA-gcqx-w48m-w2h4)).
+This dependency is not bundled into the distributed extension. Keep it visible
+in `npm audit` and update it when an upstream fix is available.
 
 
 
