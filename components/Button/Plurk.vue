@@ -16,7 +16,7 @@ const run = () => {
     status: $store.tab?.url || "",
   }).toString();
 
-  window.open(`http://plurk.com/?${params}`);
+  window.open(`https://plurk.com/?${params}`);
 };
 
 // Image

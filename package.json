@@ -5,31 +5,37 @@
   "version": "3.4.0",
   "license": "MIT",
   "engines": {
-    "node": ">=20"
+    "node": ">=22.12.0"
   },
   "scripts": {
     "start": "wxt",
-    "biome": "biome check --write",
+    "biome": "biome check",
+    "format": "biome check --write",
     "dev": "wxt",
     "dev:firefox": "wxt -b firefox",
-    "build": "npm run biome && wxt build",
-    "build:firefox": "npm run biome && wxt build -b firefox",
-    "build:safari": "npm run biome && wxt build -b safari && xcrun safari-web-extension-converter .output/safari-mv2 --project-location .output --force",
-    "zip": "npm run biome && wxt zip",
-    "zip:firefox": "npm run biome && wxt zip -b firefox",
+    "build": "wxt build",
+    "build:firefox": "wxt build -b firefox",
+    "build:safari": "wxt build -b safari && xcrun safari-web-extension-converter .output/safari-mv2 --project-location .output --force",
+    "zip": "wxt zip",
+    "zip:firefox": "wxt zip -b firefox",
+    "test": "node --import tsx --test --experimental-test-isolation=none tests/*.test.mts",
     "compile": "vue-tsc --noEmit",
     "postinstall": "wxt prepare"
   },
   "dependencies": {
-    "vue": "^3.5.23"
+    "vue": "^3.5.44"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.3.4",
-    "@types/chrome": "^0.1.27",
-    "@wxt-dev/auto-icons": "^1.1.0",
+    "@biomejs/biome": "^2.6.3",
+    "@types/chrome": "^0.3.7",
+    "@types/node": "^22.20.5",
+    "@wxt-dev/auto-icons": "^1.1.2",
     "@wxt-dev/module-vue": "^1.0.3",
+    "tsx": "^4.23.15",
     "typescript": "^5.9.3",
-    "vue-tsc": "^3.1.3",
-    "wxt": "^0.20.11"
+    "vite": "^7.3.7",
+    "vue-tsc": "^3.3.13",
+    "web-ext": "^10.8.0",
+    "wxt": "^0.21.5"
   }
 }

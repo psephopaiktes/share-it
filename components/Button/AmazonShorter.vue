@@ -8,28 +8,32 @@ const label = {
 };
 
 // Action
-import { onMounted, ref } from "vue";
+import { computed } from "vue";
 import $store from "@/entrypoints/popup/store";
 
-const url = ref("");
-const domain = ref("");
-const isAmazon = ref(false);
+const amazonDomain =
+  /^(?:www\.|smile\.|m\.)?amazon\.(?:com|ca|com\.mx|com\.br|co\.uk|de|fr|it|es|nl|se|pl|com\.be|ie|co\.jp|in|com\.au|sg|ae|sa|com\.tr|eg|co\.za)$/;
 
-onMounted(() => {
-  url.value = $store.tab?.url?.toString() || "";
-  if (!url.value) return;
+function getAmazonProductUrl(value: string): string | null {
+  try {
+    const url = new URL(value);
+    if (!["http:", "https:"].includes(url.protocol)) return null;
+    if (!amazonDomain.test(url.hostname)) return null;
+    const match = url.pathname.match(
+      /\/(?:dp|gp\/product|gp\/aw\/d)\/([A-Z0-9]{10})(?:\/|$)/i,
+    );
+    if (!match) return null;
+    return `https://${url.hostname}/dp/${match[1]}`;
+  } catch {
+    return null;
+  }
+}
 
-  domain.value = new URL(url.value).hostname;
-  isAmazon.value = !!domain.value.match(/amazon/);
-});
+const productUrl = computed(() => getAmazonProductUrl($store.tab?.url ?? ""));
 
 const run = () => {
-  const ID = url.value
-    .slice(url.value.search(/(\/product\/|\/dp\/)/))
-    .split("/")[2]
-    .slice(0, 10);
-
-  window.open(`https://${domain.value}/dp/${ID}`);
+  if (productUrl.value)
+    window.open(productUrl.value, "_blank", "noopener,noreferrer");
 };
 
 // Image
@@ -45,7 +49,7 @@ const tooltip = {
 </script>
 
 <template>
-	<VButton :label @click="run()" :img :tooltip :class="{ hide: !isAmazon && !$store.editing }" />
+	<VButton :label @click="run()" :img :tooltip :class="{ hide: !productUrl && !$store.editing }" />
 </template>
 
 <style scoped>

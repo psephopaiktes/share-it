@@ -16,7 +16,7 @@ const run = () => {
     u: $store.tab?.url || "",
   }).toString();
 
-  window.open(`http://wordpress.com/wp-admin/press-this.php?${params}`);
+  window.open(`https://wordpress.com/wp-admin/press-this.php?${params}`);
 };
 
 // Image

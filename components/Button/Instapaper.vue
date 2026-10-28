@@ -16,7 +16,7 @@ const run = () => {
     url: $store.tab?.url || "",
   }).toString();
 
-  window.open(`http://www.instapaper.com/edit?${params}`);
+  window.open(`https://www.instapaper.com/edit?${params}`);
 };
 
 // Image

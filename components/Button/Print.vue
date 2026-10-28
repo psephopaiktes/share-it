@@ -10,15 +10,19 @@ const label = {
 // Action
 import $store from "@/entrypoints/popup/store";
 
-const run = () => {
-  const tabId = $store.tab?.id || 0;
-
-  browser.scripting.executeScript({
-    target: { tabId },
-    func: () => {
-      window.print();
-    },
-  });
+const run = async () => {
+  const tabId = $store.tab?.id;
+  if (tabId == null) return;
+  try {
+    await browser.scripting.executeScript({
+      target: { tabId },
+      func: () => {
+        window.print();
+      },
+    });
+  } catch (error) {
+    console.error("Could not print this tab:", error);
+  }
 };
 
 // Image
