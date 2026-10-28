@@ -5,19 +5,18 @@
   "version": "3.4.0",
   "license": "MIT",
   "engines": {
-    "node": ">=22.12.0"
+    "node": ">=22"
   },
   "scripts": {
     "start": "wxt",
-    "biome": "biome check",
-    "format": "biome check --write",
+    "biome": "biome check --write",
     "dev": "wxt",
     "dev:firefox": "wxt -b firefox",
-    "build": "wxt build",
-    "build:firefox": "wxt build -b firefox",
-    "build:safari": "wxt build -b safari && xcrun safari-web-extension-converter .output/safari-mv2 --project-location .output --force",
-    "zip": "wxt zip",
-    "zip:firefox": "wxt zip -b firefox",
+    "build": "npm run biome && wxt build",
+    "build:firefox": "npm run biome && wxt build -b firefox",
+    "build:safari": "npm run biome && wxt build -b safari && xcrun safari-web-extension-converter .output/safari-mv2 --project-location .output --force",
+    "zip": "npm run biome && wxt zip",
+    "zip:firefox": "npm run biome && wxt zip -b firefox",
     "test": "node --import tsx --test --experimental-test-isolation=none tests/*.test.mts",
     "compile": "vue-tsc --noEmit",
     "postinstall": "wxt prepare"

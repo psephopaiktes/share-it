@@ -14,15 +14,11 @@ Please fork the repository and submit a Pull Request following the general proce
 
 ### Setting Up the Development Environment
 
-Use Node.js 22.12 or newer.
-
 ```zsh
-npm ci
+npm i
 npm start
 ```
 
-Load `.output/chrome-mv3-dev` as an unpacked extension. See the README for
-validation commands and Firefox development instructions.
 
 ### Adding a Button
 
