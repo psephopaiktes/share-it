@@ -140,6 +140,7 @@ jobs:
         with:
           name: share-it-${{ needs.version.outputs.version }}-${{ matrix.store }}
           path: .output/*.zip
+          include-hidden-files: true
           if-no-files-found: error
           overwrite: true
           retention-days: 14
