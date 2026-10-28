@@ -23,6 +23,12 @@ const items = props.settings.fields.map((field) => ({
     field.defaultValue,
   ),
 }));
+const conflictMessage = i18n.t({
+  en: "Settings changed in another window. Reload before editing again.",
+  ja: "別の画面で設定が変更されました。再読み込みしてから編集してください。",
+  "zh-cn": "设置已在另一个窗口更改。请重新加载后再编辑。",
+  es: "La configuración cambió en otra ventana. Recarga antes de editar de nuevo.",
+});
 const errorMessage = i18n.t({
   en: "Could not load or save settings. Please try again.",
   ja: "設定を読み込み、または保存できませんでした。もう一度お試しください。",
@@ -94,8 +100,11 @@ function onStorageChanged(changes: Record<string, unknown>, area: string) {
     !items.some((item) => item.storage.key in changes)
   )
     return;
-  if (dirty.value) conflict.value = true;
-  else void load();
+  if (dirty.value) {
+    if (conflict.value) return;
+    conflict.value = true;
+    window.alert(conflictMessage);
+  } else void load();
 }
 
 onMounted(() => {
@@ -109,13 +118,7 @@ onUnmounted(() => browser.storage.onChanged.removeListener(onStorageChanged));
   <section :aria-labelledby="`button-settings-${buttonId}`">
     <h2 :id="`button-settings-${buttonId}`" tabindex="-1">{{ i18n.t(settings.title) }}</h2>
     <p v-if="error" role="alert">{{ error }}</p>
-    <p v-if="conflict" role="alert">{{ i18n.t({
-      en: "Settings changed in another window. Reload before editing again.",
-      ja: "別の画面で設定が変更されました。再読み込みしてから編集してください。",
-      "zh-cn": "设置已在另一个窗口更改。请重新加载后再编辑。",
-      es: "La configuración cambió en otra ventana. Recarga antes de editar de nuevo.",
-    }) }}</p>
-    <button v-if="!loaded || conflict" type="button" @click="load">{{ i18n.t({ en: "Reload", ja: "再読み込み", "zh-cn": "重新加载", es: "Recargar" }) }}</button>
+    <button v-if="!loaded || conflict" class="reloadSettings" type="button" :title="conflict ? conflictMessage : undefined" @click="load">{{ i18n.t({ en: "Reload", ja: "再読み込み", "zh-cn": "重新加载", es: "Recargar" }) }}</button>
     <form @submit.prevent="save">
       <fieldset :disabled="!loaded || saving || conflict" @input="saved = false">
         <div v-for="field in settings.fields" :key="field.id" class="field">

@@ -106,8 +106,11 @@ const loadSettings = async () => {
 
 const onStorageChanged = (changes: Record<string, unknown>, area: string) => {
   if (area !== "sync" || !("options" in changes) || saving.value) return;
-  if (dirty.value) conflict.value = true;
-  else void loadSettings();
+  if (dirty.value) {
+    if (conflict.value) return;
+    conflict.value = true;
+    window.alert(conflictMessage);
+  } else void loadSettings();
 };
 onMounted(() => {
   browser.storage.onChanged.addListener(onStorageChanged);
@@ -220,8 +223,7 @@ const openSettings = async (buttonId: string) => {
     <button v-if="!settingsLoaded && settingsError" @click="loadSettings">
       {{ i18n.t({ en: "Retry", ja: "再試行", "zh-cn": "重试", es: "Reintentar" }) }}
     </button>
-    <p v-if="conflict" role="alert">{{ conflictMessage }}</p>
-    <button v-if="conflict" type="button" @click="loadSettings">
+    <button v-if="conflict" class="reloadSettings" type="button" :title="conflictMessage" @click="loadSettings">
       {{ i18n.t({ en: "Reload", ja: "再読み込み", "zh-cn": "重新加载", es: "Recargar" }) }}
     </button>
     <p v-if="saved && standalone" role="status">
@@ -283,10 +285,40 @@ const openSettings = async (buttonId: string) => {
 
 <style scoped>
 fieldset { border: 0; min-width: 0; }
+.standalone {
+  padding-bottom: calc(128px + env(safe-area-inset-bottom, 0px));
+}
 .standalone footer {
-  position: sticky;
-  width: 100%;
-  margin-top: 24px;
+  position: fixed;
+  left: auto;
+  right: 32px;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  width: auto;
+  max-width: calc(100vw - 32px);
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  box-shadow: 0 8px 24px rgb(0 0 0 / .2), 0 2px 6px rgb(0 0 0 / .15);
+  z-index: 10;
+
+  button {
+    width: auto;
+    min-width: 144px;
+    height: 52px;
+    padding: 0 28px;
+    border-radius: inherit;
+    text-indent: 0;
+  }
+
+  button.complete {
+    background: rgb(var(--color-theme));
+  }
+}
+@media (max-width: 760px) {
+  .standalone footer {
+    right: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  }
 }
 .settings {
   position: absolute;

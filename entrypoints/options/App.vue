@@ -66,7 +66,7 @@ function openButtonSettings(buttonId: string) {
 async function handleHash() {
   const [page, encodedId] = window.location.hash.slice(1).split("/");
   section.value = menu.find((item) => item.id === page)?.id ?? "buttons";
-  document.title = `${title.value} — Share It`;
+  document.title = `${title.value} — Share-it`;
   closeDrawer();
   await nextTick();
   let target: HTMLElement | null | undefined;
@@ -99,7 +99,7 @@ onUnmounted(() => {
 <template>
   <div class="optionsLayout">
     <aside class="sidebar">
-      <p class="brand">Share It</p>
+      <p class="brand">Share-it</p>
       <nav :aria-label="menuLabel">
         <a v-for="item in menu" :key="item.id" :href="`#${item.id}`" :aria-current="section === item.id ? 'page' : undefined">{{ item.label }}</a>
       </nav>
@@ -118,7 +118,7 @@ onUnmounted(() => {
     <dialog ref="drawer" :aria-label="menuLabel" @click="($event.target === drawer) && closeDrawer()">
       <div class="drawerContent">
         <div class="drawerHeader">
-          <span class="brand">Share It</span>
+          <span class="brand">Share-it</span>
           <button type="button" :aria-label="i18n.t({ en: 'Close menu', ja: 'メニューを閉じる', 'zh-cn': '关闭菜单', es: 'Cerrar menú' })" @click="closeDrawer">×</button>
         </div>
         <nav :aria-label="menuLabel">
@@ -151,6 +151,7 @@ nav a[aria-current] { background: rgb(var(--color-theme) / .12); color: rgb(var(
 main { min-width: 0; padding: 32px; }
 header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
 h1 { font-size: 24px; font-weight: 600; }
+h1:focus { outline: none; }
 button { border: 0; border-radius: 6px; color: inherit; font: inherit; min-width: 40px; min-height: 40px; padding: 8px; }
 .menuToggle { display: none; }
 dialog {

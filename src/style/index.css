@@ -65,3 +65,12 @@ body {
   outline: 2px solid rgb(var(--color-theme));
   outline-offset: 3px;
 }
+
+.reloadSettings {
+  padding: 10px 20px;
+  border: 1px solid rgb(var(--color-theme) / 0.4);
+  border-radius: 999px;
+  background: rgb(var(--color-theme) / 0.1);
+  color: rgb(var(--color-theme));
+  font: inherit;
+}
