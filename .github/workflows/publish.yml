@@ -1,0 +1,175 @@
+name: Publish to stores
+
+on:
+  workflow_call:
+    inputs:
+      store:
+        type: string
+        default: all
+      dry_run:
+        type: boolean
+        default: false
+    secrets:
+      CHROME_SERVICE_ACCOUNT_PRIVATE_KEY:
+        required: false
+      FIREFOX_JWT_ISSUER:
+        required: false
+      FIREFOX_JWT_SECRET:
+        required: false
+  workflow_dispatch:
+    inputs:
+      store:
+        description: Store to submit to
+        type: choice
+        options: [all, chrome, firefox]
+        default: all
+      dry_run:
+        description: Check authentication without uploading or submitting
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  version:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.version.outputs.changed }}
+      version: ${{ steps.version.outputs.version }}
+      stores: ${{ steps.version.outputs.stores }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+      - name: Check release version
+        id: version
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+          STORE: ${{ inputs.store }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { execFileSync } from 'node:child_process';
+          import { readFileSync, appendFileSync } from 'node:fs';
+          const current = JSON.parse(readFileSync('package.json', 'utf8')).version;
+          const parts = (version) => {
+            if (!/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(version)) {
+              throw new Error('Store releases require a numeric major.minor.patch version');
+            }
+            const numbers = version.split('.').map(Number);
+            if (numbers.some((n) => n > 65535) || numbers.every((n) => n === 0)) {
+              throw new Error('Version components must be 0–65535, and not all zero');
+            }
+            return numbers;
+          };
+          const currentParts = parts(current);
+          const lock = JSON.parse(readFileSync('package-lock.json', 'utf8'));
+          if (lock.version !== current || lock.packages?.['']?.version !== current) {
+            throw new Error('Update package.json and package-lock.json together with npm version');
+          }
+          let changed = true;
+          if (process.env.EVENT_NAME !== 'workflow_dispatch') {
+            const before = process.env.BEFORE_SHA;
+            if (!/^[0-9a-f]{40}$/.test(before ?? '') || /^0+$/.test(before)) {
+              throw new Error('A valid previous main commit is required');
+            }
+            const previous = JSON.parse(execFileSync('git', ['show', `${before}:package.json`], { encoding: 'utf8' })).version;
+            changed = current !== previous;
+            if (changed) {
+              const previousParts = parts(previous);
+              const difference = currentParts.map((n, i) => n - previousParts[i]).find((n) => n !== 0);
+              if (!(difference > 0)) throw new Error('Release version must increase');
+            }
+          }
+          const store = process.env.STORE || 'all';
+          if (!['all', 'chrome', 'firefox'].includes(store)) throw new Error('Unknown store');
+          const stores = store === 'all' ? ['chrome', 'firefox'] : [store];
+          appendFileSync(process.env.GITHUB_OUTPUT, `changed=${changed}\nversion=${current}\nstores=${JSON.stringify(stores)}\n`);
+          appendFileSync(process.env.GITHUB_STEP_SUMMARY, changed
+            ? `Version ${current}: ${stores.join(', ')}.\n`
+            : `Version ${current} is unchanged; store submission skipped.\n`);
+          NODE
+
+  submit:
+    needs: version
+    if: needs.version.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        store: ${{ fromJSON(needs.version.outputs.stores) }}
+    concurrency:
+      group: store-publish-${{ matrix.store }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Validate manual runs
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          npm run biome
+          npm run compile
+          npm test
+          npm audit --audit-level=moderate
+      - name: Build store ZIPs
+        env:
+          STORE: ${{ matrix.store }}
+        run: |
+          if [ "$STORE" = chrome ]; then
+            npm run zip
+          else
+            npm run zip:firefox
+          fi
+      - name: Keep submitted ZIPs
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: share-it-${{ needs.version.outputs.version }}-${{ matrix.store }}
+          path: .output/*.zip
+          if-no-files-found: error
+          overwrite: true
+          retention-days: 14
+      - name: Authenticate and submit
+        env:
+          STORE: ${{ matrix.store }}
+          VERSION: ${{ needs.version.outputs.version }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          CHROME_EXTENSION_ID: kmfmfcdigkgfhmnopjfdnaikhjkmmplm
+          CHROME_PUBLISHER_ID: ${{ matrix.store == 'chrome' && vars.CHROME_PUBLISHER_ID || '' }}
+          CHROME_SERVICE_ACCOUNT_CLIENT_EMAIL: ${{ matrix.store == 'chrome' && vars.CHROME_SERVICE_ACCOUNT_CLIENT_EMAIL || '' }}
+          CHROME_SERVICE_ACCOUNT_PRIVATE_KEY: ${{ matrix.store == 'chrome' && secrets.CHROME_SERVICE_ACCOUNT_PRIVATE_KEY || '' }}
+          FIREFOX_EXTENSION_ID: share-it@hira.page
+          FIREFOX_JWT_ISSUER: ${{ matrix.store == 'firefox' && secrets.FIREFOX_JWT_ISSUER || '' }}
+          FIREFOX_JWT_SECRET: ${{ matrix.store == 'firefox' && secrets.FIREFOX_JWT_SECRET || '' }}
+        run: |
+          if [ "$STORE" = chrome ]; then
+            required=(CHROME_PUBLISHER_ID CHROME_SERVICE_ACCOUNT_CLIENT_EMAIL CHROME_SERVICE_ACCOUNT_PRIVATE_KEY)
+            args=(--chrome-api-version v2 --chrome-zip ".output/share-it-$VERSION-chrome.zip")
+          else
+            required=(FIREFOX_JWT_ISSUER FIREFOX_JWT_SECRET)
+            args=(--firefox-channel listed --firefox-zip ".output/share-it-$VERSION-firefox.zip" --firefox-sources-zip ".output/share-it-$VERSION-sources.zip")
+          fi
+          missing=0
+          for name in "${required[@]}"; do
+            if [ -z "${!name}" ]; then
+              printf '::error::Missing Actions variable or secret: %s\n' "$name"
+              missing=1
+            fi
+          done
+          if [ "$missing" -ne 0 ]; then exit 1; fi
+          if [ "$DRY_RUN" = true ]; then args+=(--dry-run); fi
+          npx --no-install wxt submit "${args[@]}"
