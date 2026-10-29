@@ -1,11 +1,78 @@
 <script lang="ts" setup>
 import { computed, onMounted, onUnmounted } from "vue";
 import ButtonList from "@/components/ButtonList.vue";
+import { defaultButtonList } from "@/components/defaultButtonList";
+import i18n from "@/lib/i18n";
+import { textSetting } from "@/lib/settings";
 import $store from "./store";
 
 const title = computed(() => $store.tab?.title ?? "");
 const url = computed(() => $store.tab?.url ?? "");
 const favIconUrl = computed(() => $store.tab?.favIconUrl ?? "");
+
+let settingsRevision = 0;
+const loadButtonTextSettings = async () => {
+  const revision = ++settingsRevision;
+  $store.textSettingsLoaded = false;
+  try {
+    const entries = await Promise.all(
+      defaultButtonList.flatMap((button) =>
+        (button.settings?.fields ?? []).map(async (field) => {
+          const raw = await textSetting(
+            browser.storage.sync,
+            button.componentName,
+            field.id,
+            field.defaultValue,
+          ).get();
+          const value = field.normalize ? field.normalize(raw) : raw;
+          return {
+            buttonId: button.componentName,
+            fieldId: field.id,
+            value,
+            error:
+              value === null ? i18n.t(field.invalidMessage ?? field.label) : "",
+          };
+        }),
+      ),
+    );
+    if (revision !== settingsRevision) return;
+    const values: Record<string, Record<string, string>> = {};
+    const errors: Record<string, string> = {};
+    for (const entry of entries) {
+      if (entry.value === null) {
+        errors[entry.buttonId] = entry.error;
+        continue;
+      }
+      const fields = values[entry.buttonId] ?? {};
+      fields[entry.fieldId] = entry.value;
+      values[entry.buttonId] = fields;
+    }
+    $store.buttonText = values;
+    $store.textSettingsErrors = errors;
+    $store.textSettingsError = "";
+    $store.textSettingsLoaded = true;
+  } catch {
+    if (revision !== settingsRevision) return;
+    $store.textSettingsError = i18n.t({
+      en: "Could not load button settings. Check the settings or reopen the popup.",
+      ja: "ボタンの設定を読み込めませんでした。設定を確認するか、Popupを開き直してください。",
+      "zh-cn": "无法加载按钮设置。请检查设置或重新打开弹出窗口。",
+      es: "No se pudieron cargar los ajustes. Revísalos o vuelve a abrir la ventana emergente.",
+    });
+  }
+};
+
+const handleTextSettingsChange = (
+  changes: Record<string, unknown>,
+  area: string,
+) => {
+  if (
+    area === "sync" &&
+    Object.keys(changes).some((key) => key.startsWith("button-text:"))
+  ) {
+    void loadButtonTextSettings();
+  }
+};
 
 const getCurrentTab = async () => {
   try {
@@ -61,11 +128,17 @@ const handleKeyNavigation = (event: KeyboardEvent) => {
 };
 
 onMounted(() => {
+  browser.storage.onChanged.addListener(handleTextSettingsChange);
+  void loadButtonTextSettings();
   void getCurrentTab();
   document.addEventListener("keydown", handleKeyNavigation);
 });
 
-onUnmounted(() => document.removeEventListener("keydown", handleKeyNavigation));
+onUnmounted(() => {
+  ++settingsRevision;
+  browser.storage.onChanged.removeListener(handleTextSettingsChange);
+  document.removeEventListener("keydown", handleKeyNavigation);
+});
 </script>
 
 <template>
