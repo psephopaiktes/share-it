@@ -143,9 +143,43 @@ test("custom CRUD preserves unrelated Sync values and cannot revive a concurrent
   await deleteCustomButton(storage, renamed);
   await assert.rejects(saveCustomButton(storage, renamed, renamed), /conflict/);
   assert.deepEqual(storage.data, {
-    options: { buttons: [], future: true },
+    options: {
+      buttons: [{ componentName: `custom:${first.id}`, enable: true }],
+      future: true,
+    },
     "button-text:Gmail:recipient": "me@example.test",
   });
+  assert.deepEqual(await loadButtons(storage, []), []);
+});
+
+test("new custom buttons start at the top on reopen without moving existing or renamed buttons", async () => {
+  const existingOrder = [
+    { componentName: "Gmail", enable: false },
+    { componentName: "X", enable: true },
+  ] as const;
+  const storage = fixture({
+    options: { buttons: existingOrder, future: true },
+  });
+  await saveCustomButton(storage, first);
+  const second = { ...first, id: "custom-two", name: "Second service" };
+  await saveCustomButton(storage, second);
+  const defaults = [...existingOrder, ...customButtonDefaults([first, second])];
+  const order = [
+    { componentName: `custom:${second.id}`, enable: true },
+    { componentName: `custom:${first.id}`, enable: true },
+    ...existingOrder,
+  ] as const;
+  assert.deepEqual(await loadButtons(storage, defaults), order);
+  const moved = [
+    existingOrder[0],
+    { ...order[1], enable: false },
+    order[0],
+    existingOrder[1],
+  ];
+  await saveButtons(storage, moved, defaults);
+  await saveCustomButton(storage, { ...first, name: "Renamed" }, first);
+  assert.deepEqual(await loadButtons(storage, defaults), moved);
+  assert.equal((storage.data.options as { future: boolean }).future, true);
 });
 
 test("built-in and custom buttons retain mixed order and enabled state through editing and renaming", async () => {

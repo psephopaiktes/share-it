@@ -171,7 +171,26 @@ export async function saveCustomButton(
     (await loadCustomButtons(storage)).length >= MAX_CUSTOM_BUTTONS
   )
     throw new Error("limit");
-  await storage.set({ [key]: button });
+  const changes: Record<string, unknown> = { [key]: button };
+  if (!expected) {
+    const { options } = await storage.get("options");
+    const existing =
+      options && typeof options === "object" && !Array.isArray(options)
+        ? options
+        : {};
+    const buttons =
+      "buttons" in existing && Array.isArray(existing.buttons)
+        ? existing.buttons
+        : [];
+    changes.options = {
+      ...existing,
+      buttons: [
+        { componentName: `custom:${button.id}`, enable: true },
+        ...buttons,
+      ],
+    };
+  }
+  await storage.set(changes);
   return button;
 }
 

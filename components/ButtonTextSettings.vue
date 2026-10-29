@@ -154,6 +154,7 @@ onUnmounted(() => browser.storage.onChanged.removeListener(onStorageChanged));
 <template>
   <section :aria-labelledby="`button-settings-${buttonId}`">
     <h2 :id="`button-settings-${buttonId}`" tabindex="-1">
+      <img v-if="settings.icon" :src="settings.icon" alt="" width="24" height="24" />
       {{ i18n.t(settings.title) }}
     </h2>
 
@@ -232,8 +233,15 @@ section {
 }
 
 h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-bottom: 8px;
   scroll-margin-top: 24px;
+}
+
+h2 img {
+  flex: none;
 }
 
 fieldset {

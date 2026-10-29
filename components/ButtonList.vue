@@ -125,7 +125,17 @@ const loadSettings = async (preserveEdits = false) => {
       ...customButtonDefaults(nextCustom),
     ];
     const nextButtons = preserveEdits
-      ? normalizeButtons(buttons.value, defaults)
+      ? normalizeButtons(
+          [
+            ...customButtonDefaults(
+              nextCustom.filter(
+                (button) => !customButtonMap.value.has(`custom:${button.id}`),
+              ),
+            ),
+            ...buttons.value,
+          ],
+          defaults,
+        )
       : await loadButtons(browser.storage.sync, defaults);
     if (revision !== loadRevision) return;
     customButtons.value = nextCustom;

@@ -44,6 +44,7 @@ export const defaultButtonList: ButtonConfig[] = [
     componentName: "Mastodon",
     enable: false,
     settings: {
+      icon: "/img/mastodon.svg",
       title: {
         en: "Mastodon",
         ja: "Mastodon",
@@ -87,6 +88,7 @@ export const defaultButtonList: ButtonConfig[] = [
     componentName: "Gmail",
     enable: true,
     settings: {
+      icon: "/img/gmail.svg",
       title: { en: "Gmail", ja: "Gmail", "zh-cn": "Gmail", es: "Gmail" },
       fields: [recipientField],
     },
@@ -107,6 +109,7 @@ export const defaultButtonList: ButtonConfig[] = [
     componentName: "Email",
     enable: false,
     settings: {
+      icon: "/img/email.svg",
       title: { en: "Email", ja: "メール", "zh-cn": "邮件", es: "Correo" },
       fields: [recipientField],
     },
