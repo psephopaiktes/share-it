@@ -121,39 +121,110 @@ onUnmounted(() => {
 <template>
   <div class="optionsLayout">
     <aside class="sidebar">
-      <p class="brand"><img src="/img/share-it.svg" alt="" />Share-it</p>
+      <p class="brand">
+        <img src="/img/share-it.svg" alt="" />
+        Share-it
+      </p>
+
       <nav :aria-label="menuLabel">
-        <a v-for="item in menu" :key="item.id" :href="`#${item.id}`" :aria-current="section === item.id ? 'page' : undefined">{{ item.label }}</a>
+        <a
+          v-for="item in menu"
+          :key="item.id"
+          :href="`#${item.id}`"
+          :aria-current="section === item.id ? 'page' : undefined"
+        >
+          {{ item.label }}
+        </a>
       </nav>
+
       <div class="drawerLinks">
-        <a v-for="link in drawerLinks" :key="link.href" :href="link.href" target="_blank" rel="noopener noreferrer">
-          <span>{{ link.label }}</span><img :src="link.icon" alt="" />
+        <a
+          v-for="link in drawerLinks"
+          :key="link.href"
+          :href="link.href"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <span>{{ link.label }}</span>
+          <img :src="link.icon" alt="" />
         </a>
       </div>
     </aside>
+
     <main>
       <header>
-        <button class="menuToggle" type="button" :title="menuLabel" :aria-label="menuLabel" @click="drawer?.showModal()">☰</button>
+        <button
+          class="menuToggle"
+          type="button"
+          :title="menuLabel"
+          :aria-label="menuLabel"
+          @click="drawer?.showModal()"
+        >
+          ☰
+        </button>
         <h1 ref="heading" tabindex="-1">{{ title }}</h1>
       </header>
+
       <ButtonList v-show="section === 'buttons'" standalone @settings="openButtonSettings" />
+
       <div v-show="section === 'button-settings'">
-        <ButtonTextSettings v-for="button in settingsButtons" :key="button.componentName"
-          :button-id="button.componentName" :settings="button.settings" />
+        <ButtonTextSettings
+          v-for="button in settingsButtons"
+          :key="button.componentName"
+          :button-id="button.componentName"
+          :settings="button.settings"
+        />
       </div>
     </main>
-    <dialog ref="drawer" :aria-label="menuLabel" @click="($event.target === drawer) && closeDrawer()">
+
+    <dialog
+      ref="drawer"
+      :aria-label="menuLabel"
+      @click="($event.target === drawer) && closeDrawer()"
+    >
       <div class="drawerContent">
         <div class="drawerHeader">
-          <span class="brand"><img src="/img/share-it.svg" alt="" />Share-it</span>
-          <button type="button" :aria-label="i18n.t({ en: 'Close menu', ja: 'メニューを閉じる', 'zh-cn': '关闭菜单', es: 'Cerrar menú' })" @click="closeDrawer">×</button>
+          <span class="brand">
+            <img src="/img/share-it.svg" alt="logo" />
+            Share-it
+          </span>
+
+          <button
+            type="button"
+            :aria-label="i18n.t({
+              en: 'Close menu',
+              ja: 'メニューを閉じる',
+              'zh-cn': '关闭菜单',
+              es: 'Cerrar menú',
+            })"
+            @click="closeDrawer"
+          >
+            ×
+          </button>
         </div>
+
         <nav :aria-label="menuLabel">
-          <a v-for="item in menu" :key="item.id" :href="`#${item.id}`" :aria-current="section === item.id ? 'page' : undefined" @click="closeDrawer">{{ item.label }}</a>
+          <a
+            v-for="item in menu"
+            :key="item.id"
+            :href="`#${item.id}`"
+            :aria-current="section === item.id ? 'page' : undefined"
+            @click="closeDrawer"
+          >
+            {{ item.label }}
+          </a>
         </nav>
+
         <div class="drawerLinks">
-          <a v-for="link in drawerLinks" :key="link.href" :href="link.href" target="_blank" rel="noopener noreferrer">
-            <span>{{ link.label }}</span><img :src="link.icon" alt="" />
+          <a
+            v-for="link in drawerLinks"
+            :key="link.href"
+            :href="link.href"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span>{{ link.label }}</span>
+            <img :src="link.icon" alt="" />
           </a>
         </div>
       </div>
@@ -162,80 +233,192 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.optionsLayout { display: grid; grid-template-columns: 248px minmax(0, 1fr); min-height: 100vh; }
-.sidebar {
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  padding: 28px 16px;
-  border-right: 1px solid rgb(var(--color-main) / .1);
-}
-.brand { display: flex; flex-shrink: 0; align-items: center; gap: 8px; padding: 0 16px; font-size: 22px; font-weight: 600; }
-.brand img { width: 24px; height: 24px; flex-shrink: 0; }
-@media (prefers-color-scheme: dark) {
-  .brand img { filter: brightness(1.5); }
-}
-nav { display: flex; flex-shrink: 0; flex-direction: column; gap: 4px; margin-top: 32px; }
-.drawerLinks {
-  display: flex;
-  flex-shrink: 0;
-  flex-direction: column;
-  gap: 8px;
-  margin-block-start: auto;
-  padding-block-start: 24px;
-}
-.drawerLinks a {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 36px;
-  padding: 8px 12px;
-  border-radius: 6px;
-  background: rgb(var(--color-theme) / .9);
-  color: #fff;
-  text-align: center;
-  text-decoration: none;
-}
-.drawerLinks a:hover,
-.drawerLinks a:focus-visible { background: rgb(var(--color-theme)); }
-.drawerLinks span { min-width: 0; overflow-wrap: anywhere; }
-.drawerLinks img { width: 1.2em; height: 1.2em; flex-shrink: 0; opacity: .8; }
-nav a {
-  padding: 12px 16px;
-  border-radius: 8px;
-  color: inherit;
-  text-decoration: none;
-}
-nav a:hover { background: rgb(var(--color-main) / .06); }
-nav a[aria-current] { background: rgb(var(--color-theme) / .12); color: rgb(var(--color-theme)); }
-main { min-width: 0; padding: 32px; }
-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
-h1 { font-size: 24px; font-weight: 600; }
-h1:focus { outline: none; }
-button { border: 0; border-radius: 6px; color: inherit; font: inherit; min-width: 40px; min-height: 40px; padding: 8px; }
-.menuToggle { display: none; }
-dialog {
-  width: min(280px, 85vw);
-  height: 100vh;
-  height: 100dvh;
-  max-height: none;
-  padding: 0;
-  border: 0;
-  background: rgb(var(--color-base));
-  color: inherit;
-}
-dialog::backdrop { background: rgb(0 0 0 / .4); }
-.drawerContent { display: flex; flex-direction: column; min-height: 100%; padding: 16px; }
-.drawerHeader { display: flex; flex-shrink: 0; justify-content: space-between; align-items: center; }
-@media (max-width: 760px) {
-  .optionsLayout { grid-template-columns: minmax(0, 1fr); }
-  .sidebar { display: none; }
-  .menuToggle { display: block; }
-  main { padding: 16px 8px; }
-  header { padding-inline: 8px; }
-}
+  .optionsLayout {
+    display: grid;
+    grid-template-columns: 248px minmax(0, 1fr);
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: 28px 16px;
+    overflow-y: auto;
+    border-right: 1px solid rgb(var(--color-main) / 0.1);
+  }
+
+  .brand {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 8px;
+    padding: 0 16px;
+    font-size: 22px;
+    font-weight: 600;
+  }
+
+  .brand img {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .brand img {
+      filter: brightness(1.5);
+    }
+  }
+
+  nav {
+    display: flex;
+    flex-shrink: 0;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 32px;
+  }
+
+  .drawerLinks {
+    display: flex;
+    flex-shrink: 0;
+    flex-direction: column;
+    gap: 8px;
+    margin-block-start: auto;
+    padding-block-start: 24px;
+  }
+
+  .drawerLinks a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 36px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: rgb(var(--color-theme) / 0.9);
+    color: #fff;
+    text-align: center;
+    text-decoration: none;
+  }
+
+  .drawerLinks a:hover,
+  .drawerLinks a:focus-visible {
+    background: rgb(var(--color-theme));
+  }
+
+  .drawerLinks span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .drawerLinks img {
+    width: 1.2em;
+    height: 1.2em;
+    flex-shrink: 0;
+    opacity: 0.8;
+  }
+
+  nav a {
+    padding: 12px 16px;
+    border-radius: 8px;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  nav a:hover {
+    background: rgb(var(--color-main) / 0.06);
+  }
+
+  nav a[aria-current] {
+    background: rgb(var(--color-theme) / 0.12);
+    color: rgb(var(--color-theme));
+  }
+
+  main {
+    min-width: 0;
+    padding: 32px;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  h1 {
+    font-size: 24px;
+    font-weight: 600;
+  }
+
+  h1:focus {
+    outline: none;
+  }
+
+  button {
+    min-width: 40px;
+    min-height: 40px;
+    padding: 8px;
+    border: 0;
+    border-radius: 6px;
+    color: inherit;
+    font: inherit;
+  }
+
+  .menuToggle {
+    display: none;
+  }
+
+  dialog {
+    width: min(280px, 85vw);
+    height: 100vh;
+    height: 100dvh;
+    max-height: none;
+    padding: 0;
+    border: 0;
+    background: rgb(var(--color-base));
+    color: inherit;
+  }
+
+  dialog::backdrop {
+    background: rgb(0 0 0 / 0.4);
+  }
+
+  .drawerContent {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    padding: 16px;
+  }
+
+  .drawerHeader {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  @media (max-width: 760px) {
+    .optionsLayout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .sidebar {
+      display: none;
+    }
+
+    .menuToggle {
+      display: block;
+    }
+
+    main {
+      padding: 16px 8px;
+    }
+
+    header {
+      padding-inline: 8px;
+    }
+  }
 </style>
