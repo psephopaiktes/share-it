@@ -34,6 +34,28 @@ const menu = [
     }),
   },
 ];
+const drawerLinks = [
+  {
+    href: "https://github.com/psephopaiktes/share-it/issues/new/choose",
+    icon: "/img/send.svg",
+    label: i18n.t({
+      en: "Request new button",
+      ja: "ボタンのリクエスト",
+      "zh-cn": "请求新按钮",
+      es: "Solicitar nuevo botón",
+    }),
+  },
+  {
+    href: "https://github.com/sponsors/psephopaiktes?frequency=one-time",
+    icon: "/img/sponsor.svg",
+    label: i18n.t({
+      en: "Support the developer",
+      ja: "開発者を支援",
+      "zh-cn": "支持开发者",
+      es: "Apoyar al desarrollador",
+    }),
+  },
+];
 const section = ref("buttons");
 const heading = ref<HTMLHeadingElement>();
 const drawer = ref<HTMLDialogElement>();
@@ -99,10 +121,15 @@ onUnmounted(() => {
 <template>
   <div class="optionsLayout">
     <aside class="sidebar">
-      <p class="brand">Share-it</p>
+      <p class="brand"><img src="/img/share-it.svg" alt="" />Share-it</p>
       <nav :aria-label="menuLabel">
         <a v-for="item in menu" :key="item.id" :href="`#${item.id}`" :aria-current="section === item.id ? 'page' : undefined">{{ item.label }}</a>
       </nav>
+      <div class="drawerLinks">
+        <a v-for="link in drawerLinks" :key="link.href" :href="link.href" target="_blank" rel="noopener noreferrer">
+          <span>{{ link.label }}</span><img :src="link.icon" alt="" />
+        </a>
+      </div>
     </aside>
     <main>
       <header>
@@ -118,12 +145,17 @@ onUnmounted(() => {
     <dialog ref="drawer" :aria-label="menuLabel" @click="($event.target === drawer) && closeDrawer()">
       <div class="drawerContent">
         <div class="drawerHeader">
-          <span class="brand">Share-it</span>
+          <span class="brand"><img src="/img/share-it.svg" alt="" />Share-it</span>
           <button type="button" :aria-label="i18n.t({ en: 'Close menu', ja: 'メニューを閉じる', 'zh-cn': '关闭菜单', es: 'Cerrar menú' })" @click="closeDrawer">×</button>
         </div>
         <nav :aria-label="menuLabel">
           <a v-for="item in menu" :key="item.id" :href="`#${item.id}`" :aria-current="section === item.id ? 'page' : undefined" @click="closeDrawer">{{ item.label }}</a>
         </nav>
+        <div class="drawerLinks">
+          <a v-for="link in drawerLinks" :key="link.href" :href="link.href" target="_blank" rel="noopener noreferrer">
+            <span>{{ link.label }}</span><img :src="link.icon" alt="" />
+          </a>
+        </div>
       </div>
     </dialog>
   </div>
@@ -132,14 +164,46 @@ onUnmounted(() => {
 <style scoped>
 .optionsLayout { display: grid; grid-template-columns: 248px minmax(0, 1fr); min-height: 100vh; }
 .sidebar {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
   position: sticky;
   top: 0;
   height: 100vh;
   padding: 28px 16px;
   border-right: 1px solid rgb(var(--color-main) / .1);
 }
-.brand { padding: 0 16px; font-size: 22px; font-weight: 600; }
-nav { display: flex; flex-direction: column; gap: 4px; margin-top: 32px; }
+.brand { display: flex; flex-shrink: 0; align-items: center; gap: 8px; padding: 0 16px; font-size: 22px; font-weight: 600; }
+.brand img { width: 24px; height: 24px; flex-shrink: 0; }
+@media (prefers-color-scheme: dark) {
+  .brand img { filter: brightness(1.5); }
+}
+nav { display: flex; flex-shrink: 0; flex-direction: column; gap: 4px; margin-top: 32px; }
+.drawerLinks {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  gap: 8px;
+  margin-block-start: auto;
+  padding-block-start: 24px;
+}
+.drawerLinks a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: rgb(var(--color-theme) / .9);
+  color: #fff;
+  text-align: center;
+  text-decoration: none;
+}
+.drawerLinks a:hover,
+.drawerLinks a:focus-visible { background: rgb(var(--color-theme)); }
+.drawerLinks span { min-width: 0; overflow-wrap: anywhere; }
+.drawerLinks img { width: 1.2em; height: 1.2em; flex-shrink: 0; opacity: .8; }
 nav a {
   padding: 12px 16px;
   border-radius: 8px;
@@ -165,8 +229,8 @@ dialog {
   color: inherit;
 }
 dialog::backdrop { background: rgb(0 0 0 / .4); }
-.drawerContent { min-height: 100%; padding: 16px; }
-.drawerHeader { display: flex; justify-content: space-between; align-items: center; }
+.drawerContent { display: flex; flex-direction: column; min-height: 100%; padding: 16px; }
+.drawerHeader { display: flex; flex-shrink: 0; justify-content: space-between; align-items: center; }
 @media (max-width: 760px) {
   .optionsLayout { grid-template-columns: minmax(0, 1fr); }
   .sidebar { display: none; }
