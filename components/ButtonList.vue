@@ -1,6 +1,14 @@
 <script lang="ts" setup>
 import { type Component, computed, onMounted, onUnmounted, ref } from "vue";
+import CustomShareButton from "@/components/CustomShareButton.vue";
 import $store from "@/entrypoints/popup/store";
+import { normalizeButtons } from "@/lib/button-options";
+import {
+  CUSTOM_BUTTON_PREFIX,
+  type CustomButton,
+  customButtonDefaults,
+  loadCustomButtons,
+} from "@/lib/custom-buttons";
 import i18n from "@/lib/i18n";
 import { loadButtons, saveButtons } from "@/lib/settings";
 import { type ButtonConfig, defaultButtonList } from "./defaultButtonList";
@@ -52,6 +60,22 @@ const switchHint = i18n.t({
 });
 
 const buttons = ref<ButtonConfig[]>([]);
+const customButtons = ref<CustomButton[]>([]);
+const customButtonMap = computed(
+  () =>
+    new Map(
+      customButtons.value.map((button) => [`custom:${button.id}`, button]),
+    ),
+);
+function hasSettings(name: string) {
+  return customButtonMap.value.has(name) || configurableButtons.has(name);
+}
+function settingsName(name: string) {
+  return (
+    customButtonMap.value.get(name)?.name ??
+    i18n.t(configurableButtons.get(name)?.title ?? { en: name })
+  );
+}
 const settingsLoaded = ref(false);
 const saving = ref(false);
 const settingsError = ref("");
@@ -89,15 +113,32 @@ const filteredButtons = computed(() =>
     : buttons.value.filter((button) => button.enable),
 );
 
-const loadSettings = async () => {
+let loadRevision = 0;
+const loadSettings = async (preserveEdits = false) => {
+  const revision = ++loadRevision;
+  preserveEdits = preserveEdits && settingsLoaded.value;
+  if (!preserveEdits) settingsLoaded.value = false;
   try {
-    buttons.value = await loadButtons(browser.storage.sync, defaultButtonList);
-    dirty.value = false;
-    conflict.value = false;
-    saved.value = false;
+    const nextCustom = await loadCustomButtons(browser.storage.sync);
+    const defaults = [
+      ...defaultButtonList,
+      ...customButtonDefaults(nextCustom),
+    ];
+    const nextButtons = preserveEdits
+      ? normalizeButtons(buttons.value, defaults)
+      : await loadButtons(browser.storage.sync, defaults);
+    if (revision !== loadRevision) return;
+    customButtons.value = nextCustom;
+    buttons.value = nextButtons;
+    if (!preserveEdits) {
+      dirty.value = false;
+      conflict.value = false;
+      saved.value = false;
+    }
     settingsLoaded.value = true;
     settingsError.value = "";
   } catch (e) {
+    if (revision !== loadRevision) return;
     console.error("Failed to retrieve options from storage:", e);
     settingsLoaded.value = false;
     settingsError.value = settingsErrorMessage;
@@ -105,7 +146,14 @@ const loadSettings = async () => {
 };
 
 const onStorageChanged = (changes: Record<string, unknown>, area: string) => {
-  if (area !== "sync" || !("options" in changes) || saving.value) return;
+  if (area !== "sync") return;
+  if (
+    Object.keys(changes).some((key) => key.startsWith(CUSTOM_BUTTON_PREFIX))
+  ) {
+    void loadSettings(true);
+    return;
+  }
+  if (!("options" in changes) || saving.value) return;
   if (dirty.value) {
     if (conflict.value) return;
     conflict.value = true;
@@ -116,7 +164,10 @@ onMounted(() => {
   browser.storage.onChanged.addListener(onStorageChanged);
   void loadSettings();
 });
-onUnmounted(() => browser.storage.onChanged.removeListener(onStorageChanged));
+onUnmounted(() => {
+  ++loadRevision;
+  browser.storage.onChanged.removeListener(onStorageChanged);
+});
 
 const dragstart = (index: number, event: DragEvent) => {
   if (!settingsLoaded.value || saving.value || conflict.value) return;
@@ -185,7 +236,11 @@ const save = async () => {
   if (saving.value || !settingsLoaded.value || conflict.value) return false;
   saving.value = true;
   try {
-    await saveButtons(browser.storage.sync, buttons.value, defaultButtonList);
+    const latestCustom = await loadCustomButtons(browser.storage.sync);
+    await saveButtons(browser.storage.sync, buttons.value, [
+      ...defaultButtonList,
+      ...customButtonDefaults(latestCustom),
+    ]);
     dirty.value = false;
     saved.value = true;
     settingsError.value = "";
@@ -207,7 +262,7 @@ const openSettings = async (buttonId: string) => {
     else
       await browser.tabs.create({
         url: browser.runtime.getURL(
-          `/options.html#button-settings/${encodeURIComponent(buttonId)}`,
+          `/options.html#${buttonId.startsWith("custom:") ? "custom-buttons" : "button-settings"}/${encodeURIComponent(buttonId.startsWith("custom:") ? buttonId.slice(7) : buttonId)}`,
         ),
       });
   } catch (error) {
@@ -220,10 +275,10 @@ const openSettings = async (buttonId: string) => {
 <template>
   <div :class="{ standalone }">
     <p v-if="settingsError" role="alert">{{ settingsError }}</p>
-    <button v-if="!settingsLoaded && settingsError" @click="loadSettings">
+    <button v-if="!settingsLoaded && settingsError" @click="loadSettings()">
       {{ i18n.t({ en: "Retry", ja: "再試行", "zh-cn": "重试", es: "Reintentar" }) }}
     </button>
-    <button v-if="conflict" class="reloadSettings" type="button" :title="conflictMessage" @click="loadSettings">
+    <button v-if="conflict" class="reloadSettings" type="button" :title="conflictMessage" @click="loadSettings()">
       {{ i18n.t({ en: "Reload", ja: "再読み込み", "zh-cn": "重新加载", es: "Recargar" }) }}
     </button>
     <p v-if="saved && standalone" role="status">
@@ -233,25 +288,26 @@ const openSettings = async (buttonId: string) => {
       <ul class="buttonList">
         <template v-for="(button, index) in filteredButtons" :key="button.componentName">
           <li :draggable="$store.editing && settingsLoaded && !saving && !conflict" @dragstart="dragstart(index, $event)" @dragend="draggingIndex = null" @dragover="dragover" @dragleave="dragleave"
-            @drop="ondrop(index, $event)" :class="{ disable: !button.enable, configurable: configurableButtons.has(button.componentName) }" :data-button="button.componentName"
+            @drop="ondrop(index, $event)" :class="{ disable: !button.enable, configurable: hasSettings(button.componentName) }" :data-button="button.componentName"
             :title="$store.editing ? dragHint : undefined">
 
             <img v-if="$store.editing" class="handle" src="/img/drag.svg" alt="" />
 
-            <button v-if="$store.editing" type="button" class="movetop" :title="moveTopHint" :aria-label="`${button.componentName}: ${moveTopHint}`" @click="movetop(index)">
+            <button v-if="$store.editing" type="button" class="movetop" :title="moveTopHint" :aria-label="`${customButtonMap.get(button.componentName)?.name ?? button.componentName}: ${moveTopHint}`" @click="movetop(index)">
               <img src="/img/movetop.svg" alt="" />
             </button>
 
-            <component :is="ButtonComponents[button.componentName]" :tabindex="$store.editing ? -1 : 0" />
+            <CustomShareButton v-if="customButtonMap.has(button.componentName)" :button="customButtonMap.get(button.componentName)!" :tabindex="$store.editing ? -1 : 0" />
+            <component v-else :is="ButtonComponents[button.componentName]" :tabindex="$store.editing ? -1 : 0" />
 
-            <button v-if="$store.editing && configurableButtons.has(button.componentName)"
+            <button v-if="$store.editing && hasSettings(button.componentName)"
               type="button" class="settings" :title="settingsHint"
-              :aria-label="`${i18n.t(configurableButtons.get(button.componentName)?.title ?? { en: button.componentName })}: ${settingsHint}`"
+              :aria-label="`${settingsName(button.componentName)}: ${settingsHint}`"
               @click="openSettings(button.componentName)">
               <img src="/img/setting.svg" alt="" />
             </button>
 
-            <input v-if="$store.editing" type="checkbox" :checked="button.enable" :title="switchHint" :aria-label="`${button.componentName}: ${switchHint}`"
+            <input v-if="$store.editing" type="checkbox" :checked="button.enable" :title="switchHint" :aria-label="`${customButtonMap.get(button.componentName)?.name ?? button.componentName}: ${switchHint}`"
               @change="changeSwitch(index, $event)" />
 
           </li>

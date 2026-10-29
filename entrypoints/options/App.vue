@@ -2,6 +2,7 @@
 import { computed, nextTick, onMounted, onUnmounted, ref } from "vue";
 import ButtonList from "@/components/ButtonList.vue";
 import ButtonTextSettings from "@/components/ButtonTextSettings.vue";
+import CustomButtons from "@/components/CustomButtons.vue";
 import { defaultButtonList } from "@/components/defaultButtonList";
 import i18n from "@/lib/i18n";
 
@@ -57,6 +58,7 @@ const drawerLinks = [
   },
 ];
 const section = ref("buttons");
+const customTargetId = ref("");
 const heading = ref<HTMLHeadingElement>();
 const drawer = ref<HTMLDialogElement>();
 const title = computed(
@@ -82,12 +84,22 @@ function handleWideScreen() {
   if (wideScreen.matches) closeDrawer();
 }
 function openButtonSettings(buttonId: string) {
-  window.location.hash = `button-settings/${encodeURIComponent(buttonId)}`;
+  window.location.hash = buttonId.startsWith("custom:")
+    ? `custom-buttons/${encodeURIComponent(buttonId.slice(7))}`
+    : `button-settings/${encodeURIComponent(buttonId)}`;
 }
 
 async function handleHash() {
   const [page, encodedId] = window.location.hash.slice(1).split("/");
   section.value = menu.find((item) => item.id === page)?.id ?? "buttons";
+  customTargetId.value = "";
+  if (section.value === "custom-buttons" && encodedId) {
+    try {
+      customTargetId.value = decodeURIComponent(encodedId);
+    } catch {
+      /* Keep the list visible for invalid fragments. */
+    }
+  }
   document.title = `${title.value} — Share-it`;
   closeDrawer();
   await nextTick();
@@ -175,6 +187,7 @@ onUnmounted(() => {
           :settings="button.settings"
         />
       </div>
+      <CustomButtons v-show="section === 'custom-buttons'" :active="section === 'custom-buttons'" :target-id="customTargetId" />
     </main>
 
     <dialog
