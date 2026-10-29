@@ -323,7 +323,7 @@ fieldset { border: 0; min-width: 0; }
 .settings {
   position: absolute;
   top: 8px;
-  right: 88px;
+  right: 56px;
   width: 24px;
   height: 24px;
   padding: 0;
@@ -331,7 +331,8 @@ fieldset { border: 0; min-width: 0; }
   border-radius: 50%;
   img { width: 20px; height: 20px; margin: 2px; }
 }
-.configurable :deep(button.edit) { padding-right: 192px; }
+.buttonList :deep(button.hasTooltip) + .settings { right: 88px; }
+.configurable :deep(button.edit.hasTooltip) { padding-right: 192px; }
 @media (prefers-color-scheme: dark) {
   .settings img { filter: brightness(1.8); }
 }

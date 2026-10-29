@@ -12,7 +12,7 @@ defineProps<{
 </script>
 
 <template>
-  <button :disabled="disabled || $store.editing || !$store.tab" :class="{ edit: $store.editing }">
+  <button :disabled="disabled || $store.editing || !$store.tab" :class="{ edit: $store.editing, hasTooltip: Boolean(tooltip) }">
     <img :src="img" alt="Service Icon" :class="{ invert: darkLogo }" class="icon" />
 
     <span class="label">
