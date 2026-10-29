@@ -13,6 +13,7 @@ export interface TextSettingField {
 
 export interface ButtonSettings {
   title: Record<string, string>;
+  icon?: string;
   fields: readonly TextSettingField[];
 }
 

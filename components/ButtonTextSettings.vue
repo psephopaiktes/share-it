@@ -6,6 +6,7 @@ import {
   type TextSettingField,
   textSetting,
 } from "@/lib/settings";
+import { useSnackbar } from "@/lib/snackbar";
 
 const props = defineProps<{ buttonId: string; settings: ButtonSettings }>();
 const values = reactive<Record<string, string>>({});
@@ -13,8 +14,7 @@ const initial = reactive<Record<string, string>>({});
 const fieldErrors = reactive<Record<string, string>>({});
 const loaded = ref(false);
 const saving = ref(false);
-const error = ref("");
-const saved = ref(false);
+const feedback = useSnackbar();
 const conflict = ref(false);
 const dirty = computed(() =>
   props.settings.fields.some((field) => values[field.id] !== initial[field.id]),
@@ -40,6 +40,29 @@ const errorMessage = i18n.t({
   "zh-cn": "无法加载或保存设置，请重试。",
   es: "No se pudo cargar o guardar la configuración. Inténtalo de nuevo.",
 });
+
+function showFailure(
+  run: () => unknown,
+  message = errorMessage,
+  reload = false,
+) {
+  feedback.show(`${i18n.t(props.settings.title)}: ${message}`, {
+    error: true,
+    action: {
+      label: i18n.t(
+        reload
+          ? {
+              en: "Reload",
+              ja: "再読み込み",
+              "zh-cn": "重新加载",
+              es: "Recargar",
+            }
+          : { en: "Retry", ja: "再試行", "zh-cn": "重试", es: "Reintentar" },
+      ),
+      run,
+    },
+  });
+}
 
 function validateField(field: TextSettingField) {
   const raw = values[field.id] ?? "";
@@ -68,11 +91,10 @@ async function load() {
     Object.assign(initial, values);
     for (const field of items) fieldErrors[field.id] = "";
     loaded.value = true;
-    error.value = "";
+    feedback.dismiss();
     conflict.value = false;
-    saved.value = false;
   } catch {
-    error.value = errorMessage;
+    showFailure(load, errorMessage, true);
   }
 }
 
@@ -91,7 +113,6 @@ async function save() {
     return;
   }
   saving.value = true;
-  saved.value = false;
   try {
     await browser.storage.sync.set(
       Object.fromEntries(
@@ -102,10 +123,11 @@ async function save() {
     );
     Object.assign(values, normalized);
     Object.assign(initial, values);
-    error.value = "";
-    saved.value = true;
+    feedback.show(
+      `${i18n.t(props.settings.title)}: ${i18n.t({ en: "Saved", ja: "保存しました", "zh-cn": "已保存", es: "Guardado" })}`,
+    );
   } catch {
-    error.value = errorMessage;
+    showFailure(save);
   } finally {
     saving.value = false;
   }
@@ -115,16 +137,16 @@ async function reset(fieldId: string) {
   const item = items.find((item) => item.id === fieldId);
   if (!item || !loaded.value || saving.value || conflict.value) return;
   saving.value = true;
-  saved.value = false;
   try {
     await item.storage.reset();
     values[item.id] = item.defaultValue ?? "";
     initial[item.id] = item.defaultValue ?? "";
     fieldErrors[item.id] = "";
-    error.value = "";
-    saved.value = true;
+    feedback.show(
+      `${i18n.t(props.settings.title)}: ${i18n.t({ en: "Reset to default", ja: "初期値に戻しました", "zh-cn": "已恢复默认值", es: "Se restableció el valor predeterminado" })}`,
+    );
   } catch {
-    error.value = errorMessage;
+    showFailure(() => reset(fieldId));
   } finally {
     saving.value = false;
   }
@@ -140,7 +162,7 @@ function onStorageChanged(changes: Record<string, unknown>, area: string) {
   if (dirty.value) {
     if (conflict.value) return;
     conflict.value = true;
-    window.alert(conflictMessage);
+    showFailure(load, conflictMessage, true);
   } else void load();
 }
 
@@ -154,10 +176,9 @@ onUnmounted(() => browser.storage.onChanged.removeListener(onStorageChanged));
 <template>
   <section :aria-labelledby="`button-settings-${buttonId}`">
     <h2 :id="`button-settings-${buttonId}`" tabindex="-1">
+      <img v-if="settings.icon" :src="settings.icon" alt="" width="24" height="24" />
       {{ i18n.t(settings.title) }}
     </h2>
-
-    <p v-if="error" role="alert">{{ error }}</p>
 
     <button
       v-if="!loaded || conflict"
@@ -170,7 +191,7 @@ onUnmounted(() => browser.storage.onChanged.removeListener(onStorageChanged));
     </button>
 
     <form @submit.prevent="save">
-      <fieldset :disabled="!loaded || saving || conflict" @input="saved = false">
+      <fieldset :disabled="!loaded || saving || conflict">
         <div v-for="field in settings.fields" :key="field.id" class="field">
           <label :for="`setting-${buttonId}-${field.id}`">
             {{ i18n.t(field.label) }}
@@ -220,9 +241,6 @@ onUnmounted(() => browser.storage.onChanged.removeListener(onStorageChanged));
       </fieldset>
     </form>
 
-    <p v-if="saved" role="status" class="savedMessage">
-      {{ i18n.t({ en: "Saved", ja: "保存しました", "zh-cn": "已保存", es: "Guardado" }) }}
-    </p>
   </section>
 </template>
 
@@ -232,8 +250,15 @@ section {
 }
 
 h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-bottom: 8px;
   scroll-margin-top: 24px;
+}
+
+h2 img {
+  flex: none;
 }
 
 fieldset {
@@ -297,13 +322,6 @@ button {
     background: rgb(var(--color-theme));
     color: rgb(var(--color-base));
   }
-}
-
-.savedMessage {
-  margin-top: 8px;
-  color: rgb(var(--color-theme));
-  font-weight: 600;
-  opacity: 0.8;
 }
 
 button:disabled {
