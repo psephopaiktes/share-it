@@ -1,17 +1,18 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "はてなブックマーク",
-  en: "Hatena Bookmark",
-  "zh-cn": "分享到Hatena",
-  es: "Guardar en Hatena",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
+const label = shareActions.Hatebu.label;
 const run = () => {
-  window.open(`https://b.hatena.ne.jp/entry/${$store.tab?.url}`);
+  window.open(
+    shareActions.Hatebu.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.Hatebu ?? {},
+      navigator.language,
+    ),
+    "_blank",
+    "noopener,noreferrer",
+  );
 };
 
 // Image

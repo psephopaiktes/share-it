@@ -1,22 +1,18 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "Googleカレンダーに追加",
-  en: "Add to Google Calendar",
-  "zh-cn": "添加到Google日历",
-  es: "Añadir a Google Calendar",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
+const label = shareActions.GoogleCalendar.label;
 const run = () => {
-  const params = new URLSearchParams({
-    text: $store.tab?.title || "",
-    details: $store.tab?.url || "",
-  }).toString();
-
-  window.open(`https://calendar.google.com/calendar/r/eventedit?${params}`);
+  window.open(
+    shareActions.GoogleCalendar.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.GoogleCalendar ?? {},
+      navigator.language,
+    ),
+    "_blank",
+    "noopener,noreferrer",
+  );
 };
 
 // Image

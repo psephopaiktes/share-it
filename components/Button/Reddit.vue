@@ -1,22 +1,18 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "Redditに投稿",
-  en: "Submit to Reddit",
-  "zh-cn": "分享到Reddit",
-  es: "Compartir en Reddit",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
+const label = shareActions.Reddit.label;
 const run = () => {
-  const params = new URLSearchParams({
-    title: $store.tab?.title || "",
-    url: $store.tab?.url || "",
-  }).toString();
-
-  window.open(`https://reddit.com/submit?${params}`);
+  window.open(
+    shareActions.Reddit.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.Reddit ?? {},
+      navigator.language,
+    ),
+    "_blank",
+    "noopener,noreferrer",
+  );
 };
 
 // Image

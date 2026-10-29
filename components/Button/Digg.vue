@@ -1,21 +1,18 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "Diggに共有",
-  en: "Share on Digg",
-  "zh-cn": "分享到Digg",
-  es: "Compartir en Digg",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
+const label = shareActions.Digg.label;
 const run = () => {
-  const params = new URLSearchParams({
-    url: $store.tab?.url || "",
-  }).toString();
-
-  window.open(`https://digg.com/submit?${params}`);
+  window.open(
+    shareActions.Digg.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.Digg ?? {},
+      navigator.language,
+    ),
+    "_blank",
+    "noopener,noreferrer",
+  );
 };
 
 // Image

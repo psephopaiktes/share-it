@@ -1,22 +1,18 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "WordPressに投稿",
-  en: "Post to WordPress",
-  "zh-cn": "发布到WordPress",
-  es: "Publicar en WordPress",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
+const label = shareActions.WordPress.label;
 const run = () => {
-  const params = new URLSearchParams({
-    t: $store.tab?.title || "",
-    u: $store.tab?.url || "",
-  }).toString();
-
-  window.open(`https://wordpress.com/wp-admin/press-this.php?${params}`);
+  window.open(
+    shareActions.WordPress.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.WordPress ?? {},
+      navigator.language,
+    ),
+    "_blank",
+    "noopener,noreferrer",
+  );
 };
 
 // Image

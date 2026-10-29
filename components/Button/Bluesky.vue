@@ -1,21 +1,18 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "Blueskyに投稿",
-  en: "Post to Bluesky",
-  "zh-cn": "分享到Bluesky",
-  es: "Publicar en Bluesky",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
+const label = shareActions.Bluesky.label;
 const run = () => {
-  const params = new URLSearchParams({
-    text: `${$store.tab?.title} ${$store.tab?.url}`,
-  }).toString();
-
-  window.open(`https://bsky.app/intent/compose?${params}`);
+  window.open(
+    shareActions.Bluesky.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.Bluesky ?? {},
+      navigator.language,
+    ),
+    "_blank",
+    "noopener,noreferrer",
+  );
 };
 
 // Image

@@ -1,22 +1,18 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "Weiboで共有",
-  en: "Share on Weibo",
-  "zh-cn": "分享到微博",
-  es: "Compartir en Weibo",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
+const label = shareActions.Weibo.label;
 const run = () => {
-  const params = new URLSearchParams({
-    title: $store.tab?.title || "",
-    url: $store.tab?.url || "",
-  }).toString();
-
-  window.open(`https://service.weibo.com/share/share.php?${params}`);
+  window.open(
+    shareActions.Weibo.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.Weibo ?? {},
+      navigator.language,
+    ),
+    "_blank",
+    "noopener,noreferrer",
+  );
 };
 
 // Image

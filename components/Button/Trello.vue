@@ -1,23 +1,18 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "Trelloに追加",
-  en: "Add to Trello",
-  "zh-cn": "添加到Trello",
-  es: "Añadir a Trello",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
+const label = shareActions.Trello.label;
 const run = () => {
-  const params = new URLSearchParams({
-    mode: "popup",
-    desc: $store.tab?.title || "",
-    url: $store.tab?.url || "",
-  }).toString();
-
-  window.open(`https://trello.com/add-card?${params}`);
+  window.open(
+    shareActions.Trello.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.Trello ?? {},
+      navigator.language,
+    ),
+    "_blank",
+    "noopener,noreferrer",
+  );
 };
 
 // Image

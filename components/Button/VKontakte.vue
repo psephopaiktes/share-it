@@ -1,21 +1,18 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "VKontakteで共有",
-  en: "Share on VKontakte",
-  "zh-cn": "分享到VKontakte",
-  es: "Compartir en VKontakte",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
+const label = shareActions.VKontakte.label;
 const run = () => {
-  const params = new URLSearchParams({
-    url: $store.tab?.url || "",
-  }).toString();
-
-  window.open(`https://vk.com/share.php?${params}`);
+  window.open(
+    shareActions.VKontakte.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.VKontakte ?? {},
+      navigator.language,
+    ),
+    "_blank",
+    "noopener,noreferrer",
+  );
 };
 
 // Image

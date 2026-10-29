@@ -1,21 +1,18 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "Grokにページを送信",
-  en: "Send page to Grok",
-  "zh-cn": "将页面发送到Grok",
-  es: "Enviar página a Grok",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
+const label = shareActions.Grok.label;
 const run = () => {
-  const params = new URLSearchParams({
-    text: `${$store.tab?.title} ${$store.tab?.url}`,
-  }).toString();
-
-  window.open(`https://x.com/i/grok?${params}`);
+  window.open(
+    shareActions.Grok.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.Grok ?? {},
+      navigator.language,
+    ),
+    "_blank",
+    "noopener,noreferrer",
+  );
 };
 
 // Image

@@ -1,25 +1,16 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "Mastodonに投稿",
-  en: "Post to Mastodon",
-  "zh-cn": "分享到Mastodon",
-  es: "Publicar en Mastodon",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
+const label = shareActions.Mastodon.label;
 const run = () => {
   if (!$store.textSettingsLoaded || $store.textSettingsErrors.Mastodon) return;
-  const instance = $store.buttonText.Mastodon?.instance;
-  if (!instance) return;
-  const params = new URLSearchParams({
-    text: `${$store.tab?.title || ""} ${$store.tab?.url || ""}`,
-  }).toString();
-
   window.open(
-    `https://${instance}/share?${params}`,
+    shareActions.Mastodon.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.Mastodon ?? {},
+      navigator.language,
+    ),
     "_blank",
     "noopener,noreferrer",
   );

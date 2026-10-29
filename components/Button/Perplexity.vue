@@ -1,21 +1,18 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "Perplexityにページを送信",
-  en: "Send page to Perplexity",
-  "zh-cn": "将页面发送到Perplexity",
-  es: "Enviar página a Perplexity",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
+const label = shareActions.Perplexity.label;
 const run = () => {
-  const params = new URLSearchParams({
-    q: `${$store.tab?.title} ${$store.tab?.url}`,
-  }).toString();
-
-  window.open(`https://perplexity.ai/search/new?${params}`);
+  window.open(
+    shareActions.Perplexity.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.Perplexity ?? {},
+      navigator.language,
+    ),
+    "_blank",
+    "noopener,noreferrer",
+  );
 };
 
 // Image

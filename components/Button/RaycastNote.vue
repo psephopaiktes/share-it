@@ -1,22 +1,17 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "Raycast Notes に保存",
-  en: "Save to Raycast Notes",
-  "zh-cn": "保存到 Raycast Notes",
-  es: "Guardar en Raycast Notes",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
-const run = async () => {
-  const params = new URLSearchParams({
-    fallbackText: `[${$store.tab?.title}](${$store.tab?.url})`,
-  }).toString();
-
+const label = shareActions.RaycastNote.label;
+const run = () => {
   window.open(
-    `raycast://extensions/raycast/raycast-notes/create-note?${params}`,
+    shareActions.RaycastNote.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.RaycastNote ?? {},
+      navigator.language,
+    ),
+    "_blank",
+    "noopener,noreferrer",
   );
 };
 

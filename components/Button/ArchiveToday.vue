@@ -1,19 +1,18 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "archive.todayに保存",
-  en: "Save to archive.today",
-  "zh-cn": "保存到archive.today",
-  es: "Guardar en archive.today",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
+const label = shareActions.ArchiveToday.label;
 const run = () => {
-  const url = $store.tab?.url || "";
-
-  window.open(`https://archive.ph/${url}`);
+  window.open(
+    shareActions.ArchiveToday.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.ArchiveToday ?? {},
+      navigator.language,
+    ),
+    "_blank",
+    "noopener,noreferrer",
+  );
 };
 
 // Image

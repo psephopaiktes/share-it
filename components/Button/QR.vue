@@ -1,22 +1,18 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "QRコードを表示",
-  en: "Show QR code",
-  "zh-cn": "显示QR码",
-  es: "Mostrar código QR",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
+const label = shareActions.QR.label;
 const run = () => {
-  const params = new URLSearchParams({
-    data: $store.tab?.url || "",
-    format: "svg",
-  }).toString();
-
-  window.open(`https://api.qrserver.com/v1/create-qr-code/?${params}`);
+  window.open(
+    shareActions.QR.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.QR ?? {},
+      navigator.language,
+    ),
+    "_blank",
+    "noopener,noreferrer",
+  );
 };
 
 // Image

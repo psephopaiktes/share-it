@@ -7,6 +7,7 @@ import * as vue from "vue";
 import { compileScript, parse } from "vue/compiler-sfc";
 import { defaultButtonList } from "../components/defaultButtonList";
 import * as settings from "../lib/settings";
+import { shareActions } from "../lib/share-actions";
 
 const compiled = new Map<string, string>();
 
@@ -69,12 +70,14 @@ function fixture(data: Record<string, unknown> = {}) {
       URL,
       URLSearchParams,
       browser,
+      navigator: { language: "en" },
       window: { open: (url: string) => opened.push(url) },
       require(name: string) {
         if (name === "vue") return { ...vue, onMounted() {}, onUnmounted() {} };
         if (name === "@/entrypoints/popup/store" || name === "./store")
           return { default: store };
         if (name === "@/lib/settings") return settings;
+        if (name === "@/lib/share-actions") return { shareActions };
         if (name === "@/components/defaultButtonList")
           return { defaultButtonList };
         if (name === "@/lib/i18n")

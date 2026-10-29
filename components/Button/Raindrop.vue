@@ -1,22 +1,18 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "Raindrop.io に保存",
-  en: "Save to Raindrop.io",
-  "zh-cn": "保存到 Raindrop.io",
-  es: "Guardar en Raindrop.io",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
+const label = shareActions.Raindrop.label;
 const run = () => {
-  const params = new URLSearchParams({
-    title: $store.tab?.title || "",
-    link: $store.tab?.url || "",
-  }).toString();
-
-  window.open(`https://app.raindrop.io/add?${params}`);
+  window.open(
+    shareActions.Raindrop.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.Raindrop ?? {},
+      navigator.language,
+    ),
+    "_blank",
+    "noopener,noreferrer",
+  );
 };
 
 // Image
