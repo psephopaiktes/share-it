@@ -83,8 +83,8 @@ onUnmounted(() => {
 
 <template>
   <Teleport to="body">
-    <div class="snackbarAnnouncement" role="status" aria-atomic="true">{{ !current?.error ? current?.message : '' }}</div>
-    <div class="snackbarAnnouncement" role="alert" aria-atomic="true">{{ current?.error ? current.message : '' }}</div>
+    <div class="snackbarAnnouncement" role="status" aria-atomic="true"><span :key="current?.id">{{ !current?.error ? current?.message : '' }}</span></div>
+    <div class="snackbarAnnouncement" role="alert" aria-atomic="true"><span :key="current?.id">{{ current?.error ? current.message : '' }}</span></div>
     <div
       ref="layer" class="snackbarLayer" :popover="nativePopover ? 'manual' : undefined"
       @mouseenter="schedule" @mouseleave="schedule"
