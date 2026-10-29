@@ -5,11 +5,46 @@ export interface TextSettingField {
   id: string;
   label: Record<string, string>;
   defaultValue?: string;
+  type?: "text" | "email";
+  description?: Record<string, string>;
+  normalize?: (value: string) => string | null;
+  invalidMessage?: Record<string, string>;
 }
 
 export interface ButtonSettings {
   title: Record<string, string>;
   fields: readonly TextSettingField[];
+}
+
+export function normalizeMastodonInstance(value: string): string | null {
+  const input = value.trim();
+  if (!input) return "mstdn.jp";
+  if (/\s|\\/.test(input)) return null;
+  try {
+    const url = new URL(input.includes("://") ? input : `https://${input}`);
+    if (
+      url.protocol !== "https:" ||
+      url.username ||
+      url.password ||
+      url.pathname !== "/" ||
+      url.search ||
+      url.hash
+    )
+      return null;
+    return url.host;
+  } catch {
+    return null;
+  }
+}
+
+export function normalizeEmailRecipient(value: string): string | null {
+  const input = value.trim();
+  return !input ||
+    /^[\w.!#$%&'*+/=?^`{|}~-]+@[a-z\d](?:[a-z\d-]{0,61}[a-z\d])?(?:\.[a-z\d](?:[a-z\d-]{0,61}[a-z\d])?)*$/i.test(
+      input,
+    )
+    ? input
+    : null;
 }
 
 interface SyncStorage {

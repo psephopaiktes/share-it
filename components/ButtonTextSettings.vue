@@ -1,11 +1,16 @@
 <script lang="ts" setup>
-import { computed, onMounted, onUnmounted, reactive, ref } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, reactive, ref } from "vue";
 import i18n from "@/lib/i18n";
-import { type ButtonSettings, textSetting } from "@/lib/settings";
+import {
+  type ButtonSettings,
+  type TextSettingField,
+  textSetting,
+} from "@/lib/settings";
 
 const props = defineProps<{ buttonId: string; settings: ButtonSettings }>();
 const values = reactive<Record<string, string>>({});
 const initial = reactive<Record<string, string>>({});
+const fieldErrors = reactive<Record<string, string>>({});
 const loaded = ref(false);
 const saving = ref(false);
 const error = ref("");
@@ -36,6 +41,23 @@ const errorMessage = i18n.t({
   es: "No se pudo cargar o guardar la configuración. Inténtalo de nuevo.",
 });
 
+function validateField(field: TextSettingField) {
+  const raw = values[field.id] ?? "";
+  const value = field.normalize ? field.normalize(raw) : raw;
+  fieldErrors[field.id] =
+    value === null
+      ? i18n.t(
+          field.invalidMessage ?? {
+            en: "Enter a valid value.",
+            ja: "有効な値を入力してください。",
+            "zh-cn": "请输入有效值。",
+            es: "Introduce un valor válido.",
+          },
+        )
+      : "";
+  return value;
+}
+
 async function load() {
   loaded.value = false;
   try {
@@ -44,6 +66,7 @@ async function load() {
     );
     Object.assign(values, Object.fromEntries(entries));
     Object.assign(initial, values);
+    for (const field of items) fieldErrors[field.id] = "";
     loaded.value = true;
     error.value = "";
     conflict.value = false;
@@ -55,16 +78,29 @@ async function load() {
 
 async function save() {
   if (!loaded.value || saving.value || conflict.value || !dirty.value) return;
+  const normalized: Record<string, string> = {};
+  let invalidId: string | undefined;
+  for (const field of items) {
+    const value = validateField(field);
+    if (value === null) invalidId ??= field.id;
+    else normalized[field.id] = value;
+  }
+  if (invalidId) {
+    await nextTick();
+    document.getElementById(`setting-${props.buttonId}-${invalidId}`)?.focus();
+    return;
+  }
   saving.value = true;
   saved.value = false;
   try {
     await browser.storage.sync.set(
       Object.fromEntries(
         items
-          .filter((item) => values[item.id] !== initial[item.id])
-          .map((item) => [item.storage.key, values[item.id] ?? ""]),
+          .filter((item) => normalized[item.id] !== initial[item.id])
+          .map((item) => [item.storage.key, normalized[item.id] ?? ""]),
       ),
     );
+    Object.assign(values, normalized);
     Object.assign(initial, values);
     error.value = "";
     saved.value = true;
@@ -84,6 +120,7 @@ async function reset(fieldId: string) {
     await item.storage.reset();
     values[item.id] = item.defaultValue ?? "";
     initial[item.id] = item.defaultValue ?? "";
+    fieldErrors[item.id] = "";
     error.value = "";
     saved.value = true;
   } catch {
@@ -124,9 +161,14 @@ onUnmounted(() => browser.storage.onChanged.removeListener(onStorageChanged));
         <div v-for="field in settings.fields" :key="field.id" class="field">
           <label :for="`setting-${buttonId}-${field.id}`">{{ i18n.t(field.label) }}</label>
           <div class="inputRow">
-            <input :id="`setting-${buttonId}-${field.id}`" v-model="values[field.id]" type="text" />
+            <input :id="`setting-${buttonId}-${field.id}`" :name="field.id" v-model="values[field.id]" :type="field.type ?? 'text'"
+              :aria-invalid="fieldErrors[field.id] ? true : undefined"
+              :aria-describedby="[field.description ? `hint-${buttonId}-${field.id}` : '', fieldErrors[field.id] ? `error-${buttonId}-${field.id}` : ''].filter(Boolean).join(' ') || undefined"
+              @input="fieldErrors[field.id] = ''" @blur="validateField(field)" />
             <button type="button" @click="reset(field.id)">{{ i18n.t({ en: "Reset", ja: "初期値に戻す", "zh-cn": "恢复默认值", es: "Restablecer" }) }}</button>
           </div>
+          <p v-if="field.description" :id="`hint-${buttonId}-${field.id}`" class="hint">{{ i18n.t(field.description) }}</p>
+          <p v-if="fieldErrors[field.id]" :id="`error-${buttonId}-${field.id}`" class="fieldError" role="alert">{{ fieldErrors[field.id] }}</p>
         </div>
         <button type="submit" class="primary" :disabled="!dirty">{{ i18n.t({ en: "Save", ja: "保存", "zh-cn": "保存", es: "Guardar" }) }}</button>
       </fieldset>
@@ -140,6 +182,9 @@ section { margin-block: 32px; }
 h2 { margin-bottom: 24px; scroll-margin-top: 24px; }
 fieldset { border: 0; min-inline-size: 0; }
 .field { margin-block: 20px; }
+.hint { margin-top: 8px; color: rgb(var(--color-main) / .7); }
+.fieldError { margin-top: 8px; color: #b3261e; }
+@media (prefers-color-scheme: dark) { .fieldError { color: #ffb4ab; } }
 label { display: block; margin-bottom: 8px; }
 .inputRow { display: flex; flex-wrap: wrap; gap: 8px; }
 input {
