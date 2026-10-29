@@ -1,23 +1,18 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "Microsoft Copilotにページを送信",
-  en: "Send page to Microsoft Copilot",
-  "zh-cn": "将页面发送到Microsoft Copilot",
-  es: "Enviar página a Microsoft Copilot",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
+const label = shareActions.Copilot.label;
 const run = () => {
-  const params = new URLSearchParams({
-    showconv: "1",
-    sendquery: "0",
-    q: `${$store.tab?.title} ${$store.tab?.url}`,
-  }).toString();
-
-  window.open(`https://bing.com/search?${params}`);
+  window.open(
+    shareActions.Copilot.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.Copilot ?? {},
+      navigator.language,
+    ),
+    "_blank",
+    "noopener,noreferrer",
+  );
 };
 
 // Image

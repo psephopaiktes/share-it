@@ -1,22 +1,18 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "Tumblrに投稿",
-  en: "Post to Tumblr",
-  "zh-cn": "分享到Tumblr",
-  es: "Publicar en Tumblr",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
+const label = shareActions.Tumblr.label;
 const run = () => {
-  const params = new URLSearchParams({
-    canonicalUrl: $store.tab?.url || "",
-    title: $store.tab?.title || "",
-  }).toString();
-
-  window.open(`https://www.tumblr.com/widgets/share/tool?${params}`);
+  window.open(
+    shareActions.Tumblr.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.Tumblr ?? {},
+      navigator.language,
+    ),
+    "_blank",
+    "noopener,noreferrer",
+  );
 };
 
 // Image

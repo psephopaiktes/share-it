@@ -10,6 +10,7 @@
     "includes": [
       "**",
       "!**/.wxt",
+      "!**/.agents",
       "!**/.output",
       "!**/build",
       "!**/docs",

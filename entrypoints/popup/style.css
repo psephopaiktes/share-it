@@ -1,49 +1,4 @@
-:root {
-  @media (prefers-color-scheme: light) {
-    --color-theme: 51 103 214;
-    --color-base: 255 255 255;
-    --color-main: 32 33 36;
-  }
-  @media (prefers-color-scheme: dark) {
-    --color-theme: 138 180 248;
-    --color-base: 42 42 42;
-    --color-main: 255 255 255;
-  }
-
-  background: rgb(var(--color-base));
-  color: rgb(var(--color-main));
-}
-
-*,
-*::before,
-*::after {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-button {
-  padding: 0 24px;
-  letter-spacing: 0.05em;
-
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-
-  cursor: pointer;
-  transition: 0.1s ease-out;
-  outline: none;
-  background: none;
-  &:hover:not(:disabled),
-  &:focus {
-    background: rgb(var(--color-main) / 0.08);
-  }
-
-  img {
-    margin-right: 8px;
-    vertical-align: middle;
-  }
-}
+@import "../../style/index.css";
 
 #app {
   margin: 0;
@@ -51,17 +6,4 @@ button {
   width: 360px;
   height: 560px;
   overflow: scroll;
-  line-height: 1.5;
-  font-size: 14px;
-  font-family: "Noto Sans", Avenir, Helvetica, Arial, -apple-system, sans-serif;
-  font-feature-settings: "pkna" 1;
-  font-kerning: normal;
-  hanging-punctuation: allow-end;
-  letter-spacing: 0.02em;
-  -webkit-text-size-adjust: 100%;
-  :lang(ja) {
-    font-family:
-      "Noto Sans JP", "Noto Sans CJK JP", Robot, -apple-system,
-      BlinkMacSystemFont, sans-serif;
-  }
 }

@@ -7,11 +7,12 @@ defineProps<{
   img: string;
   darkLogo?: boolean;
   tooltip?: Record<string, string>;
+  disabled?: boolean;
 }>();
 </script>
 
 <template>
-  <button :disabled="$store.editing || !$store.tab" :class="{ edit: $store.editing }">
+  <button :disabled="disabled || $store.editing || !$store.tab" :class="{ edit: $store.editing, hasTooltip: Boolean(tooltip) }">
     <img :src="img" alt="Service Icon" :class="{ invert: darkLogo }" class="icon" />
 
     <span class="label">
@@ -25,6 +26,7 @@ defineProps<{
 </template>
 
 <style scoped>
+button:disabled:not(.edit) { opacity: .5; cursor: default; }
 button {
   width: 100%;
   height: 40px;

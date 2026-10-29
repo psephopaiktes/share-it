@@ -12,6 +12,7 @@ const manifest = {
     "activeTab",
     "scripting",
     "clipboardWrite",
+    "contextMenus",
   ],
   commands: {
     _execute_action: {
@@ -37,5 +38,8 @@ export default defineConfig({
       "https://hira.page/blog/2024-best-buy/",
     ],
   },
-  manifest,
+  manifest: ({ browser }) => ({
+    ...manifest,
+    ...(browser === "chrome" ? { optional_permissions: ["readingList"] } : {}),
+  }),
 });

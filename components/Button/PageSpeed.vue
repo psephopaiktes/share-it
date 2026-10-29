@@ -1,18 +1,18 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "PageSpeed Insights で分析",
-  en: "Analyze with PageSpeed Insights",
-  "zh-cn": "使用 PageSpeed Insights 分析",
-  es: "Analizar con PageSpeed Insights",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
+const label = shareActions.PageSpeed.label;
 const run = () => {
-  const params = new URLSearchParams({ url: $store.tab?.url ?? "" });
-  window.open(`https://pagespeed.web.dev/analysis?${params}`);
+  window.open(
+    shareActions.PageSpeed.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.PageSpeed ?? {},
+      navigator.language,
+    ),
+    "_blank",
+    "noopener,noreferrer",
+  );
 };
 
 // Image

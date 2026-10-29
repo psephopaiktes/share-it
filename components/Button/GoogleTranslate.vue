@@ -1,27 +1,18 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "Google翻訳で開く",
-  en: "Open with Google Translate",
-  "zh-cn": "使用Google翻译打开",
-  es: "Abrir con Google Translate",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
-import i18n from "@/lib/i18n";
+import { shareActions } from "@/lib/share-actions";
 
+const label = shareActions.GoogleTranslate.label;
 const run = () => {
-  const userLang =
-    new Intl.Locale(navigator.language).language || i18n.default_locale;
-
-  const params = new URLSearchParams({
-    sl: "auto",
-    hl: userLang,
-    u: $store.tab?.url || "",
-  }).toString();
-
-  window.open(`https://translate.google.com/translate?${params}`);
+  window.open(
+    shareActions.GoogleTranslate.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.GoogleTranslate ?? {},
+      navigator.language,
+    ),
+    "_blank",
+    "noopener,noreferrer",
+  );
 };
 
 // Image

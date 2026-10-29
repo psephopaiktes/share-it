@@ -1,18 +1,17 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "FeedlyでRSSを探す",
-  en: "Search RSS on Feedly",
-  "zh-cn": "在Feedly中搜索RSS",
-  es: "Buscar RSS en Feedly",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
+const label = shareActions.Feedly.label;
 const run = () => {
   window.open(
-    `https://feedly.com/i/discover/sources/search/feed/${$store.tab?.url}`,
+    shareActions.Feedly.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.Feedly ?? {},
+      navigator.language,
+    ),
+    "_blank",
+    "noopener,noreferrer",
   );
 };
 

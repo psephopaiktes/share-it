@@ -1,23 +1,18 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "Messengerで送信",
-  en: "Send with Messenger",
-  "zh-cn": "使用Messenger发送",
-  es: "Enviar con Messenger",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
+const label = shareActions.Messenger.label;
 const run = () => {
-  const params = new URLSearchParams({
-    app_id: "1140274417695873",
-    link: $store.tab?.url || "",
-    redirect_uri: "https://messenger.com/",
-  }).toString();
-
-  window.open(`https://www.facebook.com/dialog/send?${params}`);
+  window.open(
+    shareActions.Messenger.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.Messenger ?? {},
+      navigator.language,
+    ),
+    "_blank",
+    "noopener,noreferrer",
+  );
 };
 
 // Image

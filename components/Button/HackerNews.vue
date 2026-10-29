@@ -1,22 +1,18 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "Hacker Newsに投稿",
-  en: "Post to Hacker News",
-  "zh-cn": "分享到Hacker News",
-  es: "Compartir en Hacker News",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
+const label = shareActions.HackerNews.label;
 const run = () => {
-  const params = new URLSearchParams({
-    t: $store.tab?.title || "",
-    u: $store.tab?.url || "",
-  }).toString();
-
-  window.open(`https://news.ycombinator.com/submitlink?${params}`);
+  window.open(
+    shareActions.HackerNews.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.HackerNews ?? {},
+      navigator.language,
+    ),
+    "_blank",
+    "noopener,noreferrer",
+  );
 };
 
 // Image

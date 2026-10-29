@@ -1,23 +1,18 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "Craftに保存",
-  en: "Save to Craft",
-  "zh-cn": "保存到Craft",
-  es: "Guardar en Craft",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
-const run = async () => {
-  const params = new URLSearchParams({
-    title: `${$store.tab?.title}`,
-    content: `${$store.tab?.url}`,
-    folderId: "",
-  }).toString();
-
-  window.open(`craftdocs://createdocument?${params}`);
+const label = shareActions.Craft.label;
+const run = () => {
+  window.open(
+    shareActions.Craft.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.Craft ?? {},
+      navigator.language,
+    ),
+    "_blank",
+    "noopener,noreferrer",
+  );
 };
 
 // Image

@@ -1,22 +1,18 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "Xに投稿",
-  en: "Post to X",
-  "zh-cn": "分享到X",
-  es: "Compartir en X",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
+const label = shareActions.X.label;
 const run = () => {
-  const params = new URLSearchParams({
-    text: $store.tab?.title || "",
-    url: $store.tab?.url || "",
-  }).toString();
-
-  window.open(`https://x.com/intent/post?${params}`);
+  window.open(
+    shareActions.X.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.X ?? {},
+      navigator.language,
+    ),
+    "_blank",
+    "noopener,noreferrer",
+  );
 };
 
 // Image

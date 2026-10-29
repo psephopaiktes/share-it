@@ -1,22 +1,18 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "Plurkに共有",
-  en: "Share on Plurk",
-  "zh-cn": "分享到Plurk",
-  es: "Compartir en Plurk",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
+const label = shareActions.Plurk.label;
 const run = () => {
-  const params = new URLSearchParams({
-    qualifier: "shares",
-    status: $store.tab?.url || "",
-  }).toString();
-
-  window.open(`https://plurk.com/?${params}`);
+  window.open(
+    shareActions.Plurk.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.Plurk ?? {},
+      navigator.language,
+    ),
+    "_blank",
+    "noopener,noreferrer",
+  );
 };
 
 // Image

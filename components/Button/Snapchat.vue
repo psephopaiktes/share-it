@@ -1,21 +1,18 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "Snapchatで共有",
-  en: "Share on Snapchat",
-  "zh-cn": "分享到Snapchat",
-  es: "Compartir en Snapchat",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
+const label = shareActions.Snapchat.label;
 const run = () => {
-  const params = new URLSearchParams({
-    attachmentUrl: $store.tab?.url || "",
-  }).toString();
-
-  window.open(`https://snapchat.com/scan?${params}`);
+  window.open(
+    shareActions.Snapchat.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.Snapchat ?? {},
+      navigator.language,
+    ),
+    "_blank",
+    "noopener,noreferrer",
+  );
 };
 
 // Image

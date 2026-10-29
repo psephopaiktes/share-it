@@ -1,21 +1,18 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "Threadsに投稿",
-  en: "Post to Threads",
-  "zh-cn": "分享到Threads",
-  es: "Publicar en Threads",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
+const label = shareActions.Threads.label;
 const run = () => {
-  const params = new URLSearchParams({
-    text: `${$store.tab?.title} ${$store.tab?.url}`,
-  }).toString();
-
-  window.open(`https://threads.net/intent/post?${params}`);
+  window.open(
+    shareActions.Threads.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.Threads ?? {},
+      navigator.language,
+    ),
+    "_blank",
+    "noopener,noreferrer",
+  );
 };
 
 // Image

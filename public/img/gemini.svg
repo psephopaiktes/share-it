@@ -1,15 +1,1 @@
-<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_201_63)">
-<path d="M12 24C12 22.34 11.68 20.78 11.04 19.32C10.42 17.86 9.57 16.59 8.49 15.51C7.41 14.43 6.14 13.58 4.68 12.96C3.22 12.32 1.66 12 0 12C1.66 12 3.22 11.69 4.68 11.07C6.14 10.43 7.41 9.57 8.49 8.49C9.57 7.41 10.42 6.14 11.04 4.68C11.68 3.22 12 1.66 12 0C12 1.66 12.31 3.22 12.93 4.68C13.57 6.14 14.43 7.41 15.51 8.49C16.59 9.57 17.86 10.43 19.32 11.07C20.78 11.69 22.34 12 24 12C22.34 12 20.78 12.32 19.32 12.96C17.86 13.58 16.59 14.43 15.51 15.51C14.43 16.59 13.57 17.86 12.93 19.32C12.31 20.78 12 22.34 12 24Z" fill="url(#paint0_radial_201_63)"/>
-</g>
-<defs>
-<radialGradient id="paint0_radial_201_63" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(2.38179 9.75386) rotate(18.6832) scale(25.545 204.632)">
-<stop offset="0.0671246" stop-color="#9168C0"/>
-<stop offset="0.342551" stop-color="#5684D1"/>
-<stop offset="0.672076" stop-color="#1BA1E3"/>
-</radialGradient>
-<clipPath id="clip0_201_63">
-<rect width="24" height="24" fill="white"/>
-</clipPath>
-</defs>
-</svg>
+<svg fill="none" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><radialGradient id="a" cx="0" cy="0" gradientTransform="matrix(24.19888696 8.18296371 -65.55084088 193.8487624 2.38179 9.75386)" gradientUnits="userSpaceOnUse" r="1"><stop offset=".0671246" stop-color="#9168c0"/><stop offset=".342551" stop-color="#5684d1"/><stop offset=".672076" stop-color="#1ba1e3"/></radialGradient><clipPath id="b"><path d="m0 0h24v24h-24z"/></clipPath><g clip-path="url(#b)"><path d="m12 24c0-1.66-.32-3.22-.96-4.68-.62-1.46-1.47-2.73-2.55-3.81s-2.35-1.93-3.81-2.55c-1.46-.64-3.02-.96-4.68-.96 1.66 0 3.22-.31 4.68-.93 1.46-.64 2.73-1.5 3.81-2.58s1.93-2.35 2.55-3.81c.64-1.46.96-3.02.96-4.68 0 1.66.31 3.22.93 4.68.64 1.46 1.5 2.73 2.58 3.81s2.35 1.94 3.81 2.58c1.46.62 3.02.93 4.68.93-1.66 0-3.22.32-4.68.96-1.46.62-2.73 1.47-3.81 2.55s-1.94 2.35-2.58 3.81c-.62 1.46-.93 3.02-.93 4.68z" fill="url(#a)"/></g></svg>
