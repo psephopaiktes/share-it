@@ -1,22 +1,18 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "Bloggerに投稿",
-  en: "Post to Blogger",
-  "zh-cn": "分享到Blogger",
-  es: "Publicar en Blogger",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
+const label = shareActions.Blogger.label;
 const run = () => {
-  const params = new URLSearchParams({
-    n: $store.tab?.title || "",
-    u: $store.tab?.url || "",
-  }).toString();
-
-  window.open(`https://www.blogger.com/blog-this.g?${params}`);
+  window.open(
+    shareActions.Blogger.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.Blogger ?? {},
+      navigator.language,
+    ),
+    "_blank",
+    "noopener,noreferrer",
+  );
 };
 
 // Image

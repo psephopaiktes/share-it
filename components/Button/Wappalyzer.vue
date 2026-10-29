@@ -1,20 +1,18 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "Wappalyzer で分析",
-  en: "Analyze with Wappalyzer",
-  "zh-cn": "使用 Wappalyzer 分析",
-  es: "Analizar con Wappalyzer",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
+const label = shareActions.Wappalyzer.label;
 const run = () => {
-  const url = new URL($store.tab?.url || "");
-  const query = url.host + url.pathname;
-
-  window.open(`https://wappalyzer.com/lookup/${encodeURIComponent(query)}`);
+  window.open(
+    shareActions.Wappalyzer.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.Wappalyzer ?? {},
+      navigator.language,
+    ),
+    "_blank",
+    "noopener,noreferrer",
+  );
 };
 
 // Image

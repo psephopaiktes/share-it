@@ -1,25 +1,16 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "メールで送信",
-  en: "Send via Email",
-  "zh-cn": "通过邮件发送",
-  es: "Enviar por correo",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
+const label = shareActions.Email.label;
 const run = () => {
   if (!$store.textSettingsLoaded || $store.textSettingsErrors.Email) return;
-  const params = new URLSearchParams({
-    subject: $store.tab?.title || "",
-    body: $store.tab?.url || "",
-  }).toString();
-
-  const recipient = $store.buttonText.Email?.recipient || "";
   window.open(
-    `mailto:${encodeURIComponent(recipient)}?${params}`,
+    shareActions.Email.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.Email ?? {},
+      navigator.language,
+    ),
     "_blank",
     "noopener,noreferrer",
   );

@@ -1,21 +1,18 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "ChatGPTにページを送信",
-  en: "Send page to ChatGPT",
-  "zh-cn": "将页面发送到ChatGPT",
-  es: "Enviar página a ChatGPT",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
+const label = shareActions.ChatGPT.label;
 const run = () => {
-  const params = new URLSearchParams({
-    q: `${$store.tab?.title} ${$store.tab?.url}`,
-  }).toString();
-
-  window.open(`https://chatgpt.com/?${params}`);
+  window.open(
+    shareActions.ChatGPT.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.ChatGPT ?? {},
+      navigator.language,
+    ),
+    "_blank",
+    "noopener,noreferrer",
+  );
 };
 
 // Image

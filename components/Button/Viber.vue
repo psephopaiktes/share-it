@@ -1,21 +1,18 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "Viberで送信",
-  en: "Send with Viber",
-  "zh-cn": "使用Viber发送",
-  es: "Enviar con Viber",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
-const run = async () => {
-  const params = new URLSearchParams({
-    text: `${$store.tab?.title} ${$store.tab?.url}`,
-  }).toString();
-
-  window.open(`viber://forward?${params}`);
+const label = shareActions.Viber.label;
+const run = () => {
+  window.open(
+    shareActions.Viber.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.Viber ?? {},
+      navigator.language,
+    ),
+    "_blank",
+    "noopener,noreferrer",
+  );
 };
 
 // Image

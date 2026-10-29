@@ -1,21 +1,18 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "noteに投稿",
-  en: "Post to note",
-  "zh-cn": "发布到note",
-  es: "Publicar en note",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
+const label = shareActions.Note.label;
 const run = () => {
-  const params = new URLSearchParams({
-    url: $store.tab?.url || "",
-  }).toString();
-
-  window.open(`https://note.com/intent/post?${params}`);
+  window.open(
+    shareActions.Note.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.Note ?? {},
+      navigator.language,
+    ),
+    "_blank",
+    "noopener,noreferrer",
+  );
 };
 
 // Image

@@ -1,21 +1,18 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "WhatsAppで共有",
-  en: "Share on WhatsApp",
-  "zh-cn": "分享到WhatsApp",
-  es: "Compartir en WhatsApp",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
+const label = shareActions.WhatsApp.label;
 const run = () => {
-  const params = new URLSearchParams({
-    text: $store.tab?.url || "",
-  }).toString();
-
-  window.open(`https://web.whatsapp.com/send?${params}`);
+  window.open(
+    shareActions.WhatsApp.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.WhatsApp ?? {},
+      navigator.language,
+    ),
+    "_blank",
+    "noopener,noreferrer",
+  );
 };
 
 // Image

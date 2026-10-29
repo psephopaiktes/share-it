@@ -1,22 +1,18 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "Bufferに投稿",
-  en: "Post to Buffer",
-  "zh-cn": "分享到Buffer",
-  es: "Compartir en Buffer",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
+const label = shareActions.Buffer.label;
 const run = () => {
-  const params = new URLSearchParams({
-    url: $store.tab?.url || "",
-    text: $store.tab?.title || "",
-  }).toString();
-
-  window.open(`https://buffer.com/add?${params}`);
+  window.open(
+    shareActions.Buffer.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.Buffer ?? {},
+      navigator.language,
+    ),
+    "_blank",
+    "noopener,noreferrer",
+  );
 };
 
 // Image

@@ -1,29 +1,16 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "Gmailで送信",
-  en: "Send via Gmail",
-  "zh-cn": "通过Gmail发送",
-  es: "Enviar por Gmail",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
+const label = shareActions.Gmail.label;
 const run = () => {
   if (!$store.textSettingsLoaded || $store.textSettingsErrors.Gmail) return;
-  const params = new URLSearchParams({
-    su: $store.tab?.title || "",
-    body: $store.tab?.url || "",
-    fs: "1",
-    tf: "1",
-    view: "cm",
-  });
-  const recipient = $store.buttonText.Gmail?.recipient;
-  if (recipient) params.set("to", recipient);
-
   window.open(
-    `https://gmail.google.com/gmail?${params}`,
+    shareActions.Gmail.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.Gmail ?? {},
+      navigator.language,
+    ),
     "_blank",
     "noopener,noreferrer",
   );

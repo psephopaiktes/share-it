@@ -1,17 +1,18 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "Wayback Machineで確認",
-  en: "Check in Wayback Machine",
-  "zh-cn": "在Wayback Machine中查看",
-  es: "Ver en Wayback Machine",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
+const label = shareActions.WaybackMachine.label;
 const run = () => {
-  window.open(`https://web.archive.org/web/*/${$store.tab?.url}`);
+  window.open(
+    shareActions.WaybackMachine.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.WaybackMachine ?? {},
+      navigator.language,
+    ),
+    "_blank",
+    "noopener,noreferrer",
+  );
 };
 
 // Image

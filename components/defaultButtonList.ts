@@ -36,7 +36,7 @@ export interface ButtonConfig {
   settings?: ButtonSettings;
 }
 
-export const defaultButtonList: ButtonConfig[] = [
+const commonButtonList: ButtonConfig[] = [
   { componentName: "X", enable: true },
   { componentName: "Bluesky", enable: false },
   { componentName: "Threads", enable: false },
@@ -160,3 +160,13 @@ export const defaultButtonList: ButtonConfig[] = [
   { componentName: "Viber", enable: false },
   { componentName: "ArchiveToday", enable: false },
 ];
+
+export function getDefaultButtonList(browserName: string): ButtonConfig[] {
+  return browserName === "chrome"
+    ? [{ componentName: "ReadingList", enable: false }, ...commonButtonList]
+    : commonButtonList;
+}
+
+export const defaultButtonList = getDefaultButtonList(
+  import.meta.env?.BROWSER ?? "firefox",
+);

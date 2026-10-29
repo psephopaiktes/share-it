@@ -1,22 +1,18 @@
 <script lang="ts" setup>
-// Label
-const label = {
-  ja: "Instapaperに保存",
-  en: "Save to Instapaper",
-  "zh-cn": "保存到Instapaper",
-  es: "Guardar en Instapaper",
-};
-
-// Action
 import $store from "@/entrypoints/popup/store";
+import { shareActions } from "@/lib/share-actions";
 
+const label = shareActions.Instapaper.label;
 const run = () => {
-  const params = new URLSearchParams({
-    title: $store.tab?.title || "",
-    url: $store.tab?.url || "",
-  }).toString();
-
-  window.open(`https://www.instapaper.com/edit?${params}`);
+  window.open(
+    shareActions.Instapaper.url(
+      { url: $store.tab?.url ?? "", title: $store.tab?.title ?? "" },
+      $store.buttonText.Instapaper ?? {},
+      navigator.language,
+    ),
+    "_blank",
+    "noopener,noreferrer",
+  );
 };
 
 // Image

@@ -7,7 +7,7 @@ const defaultMessage = {
   es: "Copiado",
 };
 
-const notify = async (message = defaultMessage) => {
+const notify = async (message = defaultMessage, closeWindow = true) => {
   try {
     await browser.notifications.create("", {
       type: "basic",
@@ -18,7 +18,7 @@ const notify = async (message = defaultMessage) => {
   } catch (error) {
     console.error("Notification failed:", error);
   }
-  window.close();
+  if (closeWindow) window.close();
 };
 
 export default notify;
