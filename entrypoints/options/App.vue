@@ -4,6 +4,7 @@ import ButtonList from "@/components/ButtonList.vue";
 import ButtonTextSettings from "@/components/ButtonTextSettings.vue";
 import CustomButtons from "@/components/CustomButtons.vue";
 import { defaultButtonList } from "@/components/defaultButtonList";
+import VSnackbar from "@/components/VSnackbar.vue";
 import i18n from "@/lib/i18n";
 
 const menu = [
@@ -131,6 +132,7 @@ onUnmounted(() => {
 </script>
 
 <template>
+  <VSnackbar />
   <div class="optionsLayout">
     <aside class="sidebar">
       <p class="brand">

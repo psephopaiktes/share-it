@@ -20,6 +20,7 @@ import {
   templateVariables,
 } from "@/lib/custom-buttons";
 import i18n from "@/lib/i18n";
+import { useSnackbar } from "@/lib/snackbar";
 
 const props = defineProps<{ targetId?: string; active: boolean }>();
 const t = i18n.t;
@@ -30,9 +31,8 @@ const editing = ref(false);
 const original = ref<CustomButton>();
 const draft = reactive<CustomButton>({ id: "", name: "", urlTemplate: "" });
 const errors = reactive({ name: "", template: "" });
-const error = ref("");
+const feedback = useSnackbar();
 const conflict = ref(false);
-const saved = ref(false);
 const nameInput = ref<HTMLInputElement>();
 const templateInput = ref<HTMLTextAreaElement>();
 const dirty = computed(
@@ -186,8 +186,9 @@ async function edit(button?: CustomButton) {
     draft,
     button ?? { id: crypto.randomUUID(), name: "", urlTemplate: "" },
   );
-  errors.name = errors.template = error.value = "";
-  conflict.value = saved.value = false;
+  errors.name = errors.template = "";
+  conflict.value = false;
+  feedback.dismiss();
   editing.value = true;
   await nextTick();
   nameInput.value?.focus();
@@ -196,7 +197,7 @@ async function edit(button?: CustomButton) {
 function cancel() {
   if (!canDiscard()) return;
   editing.value = false;
-  error.value = "";
+  feedback.dismiss();
 }
 
 function validateName() {
@@ -243,13 +244,12 @@ async function load(force = false) {
   const request = ++revision;
   try {
     const next = await loadCustomButtons(browser.storage.sync);
-    if (request !== revision) return;
+    if (request !== revision) return false;
     if (editing.value && original.value) {
       const current = next.find((item) => item.id === draft.id);
       if (JSON.stringify(current) !== JSON.stringify(original.value)) {
         if (dirty.value && !force) {
-          if (!conflict.value) window.alert(conflictMessage);
-          conflict.value = true;
+          if (!conflict.value) showConflict();
         } else if (current) {
           original.value = { ...current };
           Object.assign(draft, current);
@@ -258,33 +258,59 @@ async function load(force = false) {
     }
     items.value = next;
     loaded.value = true;
-    error.value = "";
     if (force) conflict.value = false;
+    if (!conflict.value) feedback.dismiss();
+    return true;
   } catch {
-    showError();
+    showError(undefined, () => load(force));
+    return false;
   }
 }
 
-function showError(reason?: unknown) {
+function showConflict() {
+  conflict.value = true;
+  feedback.show(`${draft.name}: ${conflictMessage}`, {
+    error: true,
+    action: { label: text.reload, run: () => load(true) },
+  });
+}
+
+function showError(reason?: unknown, retry: () => unknown = () => load(true)) {
   if (reason instanceof Error && reason.message === "limit") {
-    error.value = t({
-      en: "You can save up to 50 custom buttons. Delete a button before adding another.",
-      ja: "カスタムボタンは50件まで保存できます。不要なボタンを削除してから追加してください。",
-      "zh-cn": "最多可保存 50 个自定义按钮。请先删除一个按钮。",
-      es: "Puedes guardar hasta 50 botones. Elimina uno antes de añadir otro.",
-    });
+    feedback.show(
+      t({
+        en: "You can save up to 50 custom buttons. Delete a button before adding another.",
+        ja: "カスタムボタンは50件まで保存できます。不要なボタンを削除してから追加してください。",
+        "zh-cn": "最多可保存 50 个自定义按钮。请先删除一个按钮。",
+        es: "Puedes guardar hasta 50 botones. Elimina uno antes de añadir otro.",
+      }),
+      { error: true },
+    );
     return;
   }
   if (reason instanceof Error && reason.message === "conflict") {
-    conflict.value = true;
-    error.value = conflictMessage;
+    showConflict();
   } else
-    error.value = t({
-      en: "Could not save or load custom buttons. Check your connection and Sync storage space, then try again.",
-      ja: "カスタムボタンを保存・読み込みできませんでした。接続やブラウザ同期の空き容量を確認して、もう一度お試しください。",
-      "zh-cn": "无法保存或加载自定义按钮。请检查连接和同步存储空间后重试。",
-      es: "No se pudieron guardar o cargar los botones. Comprueba la conexión y el espacio de sincronización e inténtalo de nuevo.",
-    });
+    feedback.show(
+      t({
+        en: "Could not save or load custom buttons. Check your connection and Sync storage space, then try again.",
+        ja: "カスタムボタンを保存・読み込みできませんでした。接続やブラウザ同期の空き容量を確認して、もう一度お試しください。",
+        "zh-cn": "无法保存或加载自定义按钮。请检查连接和同步存储空间后重试。",
+        es: "No se pudieron guardar o cargar los botones. Comprueba la conexión y el espacio de sincronización e inténtalo de nuevo.",
+      }),
+      {
+        error: true,
+        action: {
+          label: t({
+            en: "Retry",
+            ja: "再試行",
+            "zh-cn": "重试",
+            es: "Reintentar",
+          }),
+          run: retry,
+        },
+      },
+    );
 }
 
 async function save() {
@@ -304,12 +330,33 @@ async function save() {
       original.value,
     );
     editing.value = false;
-    saved.value = true;
-    await load();
+    if (await load())
+      feedback.show(
+        t({
+          en: "Button saved.",
+          ja: "ボタンを保存しました。",
+          "zh-cn": "按钮已保存。",
+          es: "Botón guardado.",
+        }),
+        {
+          action: {
+            label: t({
+              en: "Open Edit buttons",
+              ja: "ボタン編集を開く",
+              "zh-cn": "打开编辑按钮",
+              es: "Abrir Editar botones",
+            }),
+            run: () => {
+              window.location.hash = "buttons";
+              feedback.dismiss();
+            },
+          },
+        },
+      );
     await nextTick();
     document.getElementById(`custom-edit-${button.id}`)?.focus();
   } catch (reason) {
-    showError(reason);
+    showError(reason, save);
   } finally {
     busy.value = false;
   }
@@ -332,10 +379,17 @@ async function remove(button: CustomButton) {
   try {
     await deleteCustomButton(browser.storage.sync, button);
     if (draft.id === button.id) editing.value = false;
-    saved.value = false;
-    await load();
+    if (await load())
+      feedback.show(
+        t({
+          en: "Button deleted.",
+          ja: "ボタンを削除しました。",
+          "zh-cn": "按钮已删除。",
+          es: "Botón eliminado.",
+        }),
+      );
   } catch (reason) {
-    showError(reason);
+    showError(reason, () => remove(button));
   } finally {
     busy.value = false;
   }
@@ -392,9 +446,7 @@ onUnmounted(() => {
       }) }}</p>
       <button v-if="items.length && !editing" type="button" class="primary" :disabled="!loaded || busy" @click="edit()"><span aria-hidden="true">＋</span> {{ text.add }}</button>
     </div>
-    <p v-if="error" role="alert" class="error">{{ error }}</p>
     <button v-if="!loaded || conflict" type="button" class="reloadSettings" :disabled="busy" @click="load(true)">{{ text.reload }}</button>
-    <p v-if="saved" role="status" class="saved">{{ t({ en: 'Button saved.', ja: 'ボタンを保存しました。', 'zh-cn': '按钮已保存。', es: 'Botón guardado.' }) }} <a href="#buttons">{{ t({ en: 'Open Edit buttons', ja: 'ボタン編集を開く', 'zh-cn': '打开编辑按钮', es: 'Abrir Editar botones' }) }}</a></p>
 
     <div class="workspace">
       <div class="content">
@@ -477,7 +529,6 @@ button.primary { background: rgb(var(--color-theme)); border-color: transparent;
 button.primary:hover:not(:disabled) { background: rgb(var(--color-theme) / .9); }
 .muted { color: rgb(var(--color-main) / .65); font-size: 13px; }
 .error { color: #b3261e; margin-block: 8px; }
-.saved { margin-bottom: 20px; color: rgb(var(--color-theme)); }
 a { color: rgb(var(--color-theme)); text-underline-offset: 3px; }
 .editor { padding: 24px; border: 1px solid rgb(var(--color-theme) / .3); border-radius: 12px; margin-bottom: 24px; }
 fieldset { border: 0; min-width: 0; }

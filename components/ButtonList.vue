@@ -11,6 +11,7 @@ import {
 } from "@/lib/custom-buttons";
 import i18n from "@/lib/i18n";
 import { loadButtons, saveButtons } from "@/lib/settings";
+import { useSnackbar } from "@/lib/snackbar";
 import { type ButtonConfig, defaultButtonList } from "./defaultButtonList";
 
 const props = defineProps<{ standalone?: boolean }>();
@@ -19,7 +20,7 @@ const emit = defineEmits<{ settings: [buttonId: string] }>();
 if (props.standalone) $store.editing = true;
 const dirty = ref(false);
 const conflict = ref(false);
-const saved = ref(false);
+const feedback = useSnackbar();
 const configurableButtons = new Map(
   defaultButtonList.flatMap((button) =>
     button.settings?.fields.length
@@ -88,6 +89,31 @@ const settingsErrorMessage = i18n.t({
 });
 const draggingIndex = ref<number | null>(null);
 
+function showFailure(
+  run: () => unknown,
+  message = settingsErrorMessage,
+  reload = false,
+) {
+  settingsError.value = message;
+  if (props.standalone)
+    feedback.show(message, {
+      error: true,
+      action: {
+        label: i18n.t(
+          reload
+            ? {
+                en: "Reload",
+                ja: "再読み込み",
+                "zh-cn": "重新加载",
+                es: "Recargar",
+              }
+            : { en: "Retry", ja: "再試行", "zh-cn": "重试", es: "Reintentar" },
+        ),
+        run,
+      },
+    });
+}
+
 // import all .vue files in the component/Button
 const modules = import.meta.glob("./Button/*.vue", { eager: true }) as Record<
   string,
@@ -143,15 +169,15 @@ const loadSettings = async (preserveEdits = false) => {
     if (!preserveEdits) {
       dirty.value = false;
       conflict.value = false;
-      saved.value = false;
     }
     settingsLoaded.value = true;
     settingsError.value = "";
+    if (!conflict.value) feedback.dismiss();
   } catch (e) {
     if (revision !== loadRevision) return;
     console.error("Failed to retrieve options from storage:", e);
     settingsLoaded.value = false;
-    settingsError.value = settingsErrorMessage;
+    showFailure(() => loadSettings());
   }
 };
 
@@ -167,7 +193,9 @@ const onStorageChanged = (changes: Record<string, unknown>, area: string) => {
   if (dirty.value) {
     if (conflict.value) return;
     conflict.value = true;
-    window.alert(conflictMessage);
+    if (props.standalone)
+      showFailure(() => loadSettings(), conflictMessage, true);
+    else window.alert(conflictMessage);
   } else void loadSettings();
 };
 onMounted(() => {
@@ -210,7 +238,6 @@ const ondrop = (index: number, e: DragEvent) => {
   const draggedButton = buttons.value[draggingIndex.value];
   if (!draggedButton) return;
   dirty.value = true;
-  saved.value = false;
   const moveValue = { ...draggedButton };
   buttons.value.splice(draggingIndex.value, 1);
 
@@ -226,7 +253,6 @@ const movetop = (index: number) => {
   const button = buttons.value[index];
   if (!button) return;
   dirty.value = true;
-  saved.value = false;
   const moveValue = { ...button };
   buttons.value.splice(index, 1);
   buttons.value.unshift(moveValue);
@@ -238,7 +264,6 @@ const changeSwitch = (index: number, e: Event) => {
   if (button) {
     button.enable = target.checked;
     dirty.value = true;
-    saved.value = false;
   }
 };
 
@@ -252,13 +277,21 @@ const save = async () => {
       ...customButtonDefaults(latestCustom),
     ]);
     dirty.value = false;
-    saved.value = true;
     settingsError.value = "";
+    if (props.standalone)
+      feedback.show(
+        i18n.t({
+          en: "Saved",
+          ja: "保存しました",
+          "zh-cn": "已保存",
+          es: "Guardado",
+        }),
+      );
     if (!props.standalone) $store.editing = false;
     return true;
   } catch (error) {
     console.error("Could not save settings:", error);
-    settingsError.value = settingsErrorMessage;
+    showFailure(() => save());
     return false;
   } finally {
     saving.value = false;
@@ -277,23 +310,20 @@ const openSettings = async (buttonId: string) => {
       });
   } catch (error) {
     console.error("Could not open settings:", error);
-    settingsError.value = settingsErrorMessage;
+    showFailure(() => openSettings(buttonId));
   }
 };
 </script>
 
 <template>
   <div :class="{ standalone }">
-    <p v-if="settingsError" role="alert">{{ settingsError }}</p>
+    <p v-if="settingsError && !standalone" role="alert">{{ settingsError }}</p>
     <button v-if="!settingsLoaded && settingsError" @click="loadSettings()">
       {{ i18n.t({ en: "Retry", ja: "再試行", "zh-cn": "重试", es: "Reintentar" }) }}
     </button>
     <button v-if="conflict" class="reloadSettings" type="button" :title="conflictMessage" @click="loadSettings()">
       {{ i18n.t({ en: "Reload", ja: "再読み込み", "zh-cn": "重新加载", es: "Recargar" }) }}
     </button>
-    <p v-if="saved && standalone" role="status">
-      {{ i18n.t({ en: "Saved", ja: "保存しました", "zh-cn": "已保存", es: "Guardado" }) }}
-    </p>
     <fieldset :disabled="saving || !settingsLoaded || conflict">
       <ul class="buttonList">
         <template v-for="(button, index) in filteredButtons" :key="button.componentName">
