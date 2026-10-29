@@ -1,5 +1,5 @@
 import { createApp } from "vue";
-import "@/src/style/index.css";
+import "@/style/index.css";
 import VButton from "@/components/VButton.vue";
 import i18n from "@/lib/i18n";
 import { resolveLocale } from "@/lib/locale";
